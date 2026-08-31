@@ -29,21 +29,6 @@ class IdeaGenerationError(Exception):
     pass
 
 
-def _strip_fences(raw: str) -> str:
-    """Drop a ```json ... ``` wrapper if the model added one anyway.
-
-    Cheaper than burning a whole retry (and another API call) on output that is
-    otherwise perfectly good JSON.
-    """
-    text = raw.strip()
-    if not text.startswith("```"):
-        return text
-    lines = text.split("\n")
-    if lines[-1].strip() == "```":
-        lines = lines[:-1]
-    return "\n".join(lines[1:]).strip()
-
-
 def _build_prompt(recent: list[dict]) -> str:
     if not recent:
         recent_text = "(no past ideas yet)"
@@ -66,7 +51,7 @@ def generate_idea(recent: list[dict], call_llm=llm_module.call_llm, max_attempts
     for _ in range(max_attempts):
         raw = call_llm(prompt, system=_SYSTEM_PROMPT, max_tokens=512)
         try:
-            parsed = json.loads(_strip_fences(raw))
+            parsed = json.loads(llm_module.strip_json_fences(raw))
         except json.JSONDecodeError as exc:
             last_error = exc
             continue

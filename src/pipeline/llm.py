@@ -19,6 +19,22 @@ class LLMError(Exception):
     pass
 
 
+def strip_json_fences(raw: str) -> str:
+    """Drop a ```json ... ``` wrapper if the model added one anyway.
+
+    Every JSON-producing prompt in this pipeline forbids fences, and the model
+    mostly obeys — but not always. Fixing it here is far cheaper than burning a
+    retry (and another paid API call) on output that is otherwise valid JSON.
+    """
+    text = raw.strip()
+    if not text.startswith("```"):
+        return text
+    lines = text.split("\n")
+    if lines[-1].strip() == "```":
+        lines = lines[:-1]
+    return "\n".join(lines[1:]).strip()
+
+
 def _first_text(response) -> str:
     """Return the first text block's text.
 

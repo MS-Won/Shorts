@@ -586,7 +586,7 @@ git commit -m "feat: add 5-axis idea generator with dedup-aware prompting"
 
   Task 9 (assembly) and the orchestrator (Task 12) consume this exact beat schema.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_storyboard.py`:
 ```python
@@ -690,12 +690,12 @@ def test_validate_storyboard_accepts_valid_storyboard():
     storyboard.validate_storyboard(VALID_STORYBOARD)  # should not raise
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_storyboard.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.storyboard'`.
 
-- [ ] **Step 3: Implement `src/pipeline/storyboard.py`**
+- [x] **Step 3: Implement `src/pipeline/storyboard.py`**
 
 ```python
 import json
@@ -769,12 +769,12 @@ def generate_storyboard(idea: dict, call_llm=llm_module.call_llm, max_attempts: 
     raise StoryboardValidationError(f"could not get a valid storyboard after {max_attempts} attempts: {last_error}")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_storyboard.py -v`
 Expected: 6 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/storyboard.py tests/test_storyboard.py
