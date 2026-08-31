@@ -1244,7 +1244,7 @@ git commit -m "feat: add Hailuo first-last-frame video generation client"
 - Consumes: a `storyboard` dict (Task 5 shape), a parallel `asset_paths: list[str]` (one path per beat, `.png` from Task 7 for `still_pan` beats or `.mp4` from Task 8 for `transform_video` beats), a `music_path` (from Task 6), and a `work_dir` for intermediates.
 - Produces: `assemble_video(storyboard: dict, asset_paths: list[str], music_path: str, out_path: str, work_dir: str = "work") -> str` (returns `out_path`, a finished 1080×1920 mp4 with captions burned in and music mixed under).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 These tests build real tiny fixture assets with ffmpeg/Pillow (no mocking — `assemble.py` never makes network calls, so its tests exercise the real ffmpeg binary against fast, tiny inputs) and check the output with `ffprobe`.
 
@@ -1337,12 +1337,12 @@ def test_assemble_video_output_is_vertical_1080x1920(tmp_path):
     assert _probe_resolution(out_path) == (1080, 1920)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_assemble.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.assemble'`.
 
-- [ ] **Step 3: Implement `src/pipeline/assemble.py`**
+- [x] **Step 3: Implement `src/pipeline/assemble.py`**
 
 ```python
 import os
@@ -1430,12 +1430,12 @@ def assemble_video(storyboard: dict, asset_paths: list[str], music_path: str,
     return out_path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_assemble.py -v`
 Expected: 2 passed. (These tests shell out to real `ffmpeg`/`ffprobe` and take a few seconds — that's expected.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/assemble.py tests/test_assemble.py
