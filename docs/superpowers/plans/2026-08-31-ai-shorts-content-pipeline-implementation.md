@@ -940,7 +940,7 @@ git commit -m "feat: add music picker and document manual audio-library setup st
 
 **Before implementing:** the Gemini image-generation response schema for `gemini-3-pro-image-preview` is new enough that it should be double-checked against the live docs at https://ai.google.dev/gemini-api/docs/image-generation before relying on this in production. The implementation below follows Gemini's documented `generateContent` + `responseModalities: ["IMAGE"]` pattern; adjust the response-parsing path in Step 3 if the live schema differs.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_image_gen.py`:
 ```python
@@ -999,12 +999,12 @@ def test_generate_image_raises_on_non_200(mock_post, tmp_path):
         image_gen.generate_image("prompt", str(tmp_path / "out.png"))
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_image_gen.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.image_gen'`.
 
-- [ ] **Step 3: Implement `src/pipeline/image_gen.py`**
+- [x] **Step 3: Implement `src/pipeline/image_gen.py`**
 
 ```python
 import base64
@@ -1045,12 +1045,12 @@ def generate_image(prompt: str, out_path: str) -> str:
     return out_path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_image_gen.py -v`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/image_gen.py tests/test_image_gen.py
