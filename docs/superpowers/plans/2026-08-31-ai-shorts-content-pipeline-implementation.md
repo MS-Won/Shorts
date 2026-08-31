@@ -1791,7 +1791,7 @@ git commit -m "feat: add YouTube publish client with synthetic-media disclosure"
 - Consumes: every module from Tasks 2–11, all called through their exact function names/signatures listed in those tasks' Interfaces sections.
 - Produces: `run_pipeline(work_dir: str = "work", state_path: str = "state/history.json") -> dict | None` returning a result summary dict (`{"published": bool, "youtube_id": str | None, "cost_usd": float}`) or `None` if idea/storyboard generation failed outright. This is the function Task 13's GitHub Actions workflow invokes via a CLI entry point.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Since every dependency is already unit-tested in isolation, the orchestrator test verifies *wiring*: that it calls each module in the right order with the right data flowing between them, using mocks for every dependency.
 
@@ -1877,12 +1877,12 @@ def test_run_pipeline_does_not_publish_on_rejection(mock_idea, mock_storyboard, 
     mock_publish.assert_not_called()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_orchestrator.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.orchestrator'`.
 
-- [ ] **Step 3: Implement `src/pipeline/orchestrator.py`**
+- [x] **Step 3: Implement `src/pipeline/orchestrator.py`**
 
 ```python
 import os
@@ -1950,17 +1950,17 @@ if __name__ == "__main__":
     print(result)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_orchestrator.py -v`
 Expected: 2 passed.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `python -m pytest -v`
 Expected: all tests across every module pass (state, llm, ideas, storyboard, music, image_gen, video_gen, assemble, telegram_approval, youtube_publish, orchestrator).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/pipeline/orchestrator.py tests/test_orchestrator.py
