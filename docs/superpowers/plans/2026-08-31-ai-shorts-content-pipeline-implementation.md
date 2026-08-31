@@ -323,7 +323,7 @@ git commit -m "feat: add state persistence module"
 - Consumes: `ANTHROPIC_API_KEY` env var.
 - Produces: `call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, retries: int = 3) -> str`. Every module that needs LLM output (Task 4, Task 5) imports this exact function.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_llm.py`:
 ```python
@@ -363,12 +363,12 @@ def test_call_llm_retries_then_raises_after_exhausting_retries(mock_client):
     assert mock_client.messages.create.call_count == 2
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_llm.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.llm'`.
 
-- [ ] **Step 3: Implement `src/pipeline/llm.py`**
+- [x] **Step 3: Implement `src/pipeline/llm.py`**
 
 ```python
 import os
@@ -403,17 +403,26 @@ def call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, ret
     raise LLMError(f"LLM call failed after {retries} attempts: {last_error}")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_llm.py -v`
 Expected: 3 passed. (The retry test will sleep ~2s for the backoff between attempt 1 and 2 — acceptable for a unit test; do not add real delay beyond that.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/llm.py tests/test_llm.py
 git commit -m "feat: add Claude LLM wrapper with retry"
 ```
+
+> **구현 시 계획과 다르게 한 점 (Task 3):**
+> 1. 모델을 `claude-sonnet-5` → `claude-opus-5`로 바꾸고 `ANTHROPIC_MODEL`로 덮어쓸 수 있게 했다.
+>    영상당 LLM 비용 차이는 약 $0.04로 $3~5 예산에서 무시할 수준인 반면, 아이디어·스토리보드
+>    품질은 이 채널이 "AI slop" 판정을 피하는 유일한 방어선이다(스펙 3.3절).
+> 2. `response.content[0].text` → 첫 번째 **text 블록**을 찾아 반환하도록 고쳤다.
+>    현행 Claude 모델은 thinking이 기본 on이라 `content[0]`이 ThinkingBlock인 경우가 흔한데,
+>    ThinkingBlock에는 `.text`가 없어 AttributeError가 나고 그게 재시도 루프에 삼켜져
+>    LLMError로 둔갑한다. 텍스트 블록이 아예 없으면 명시적으로 LLMError를 던진다.
 
 ---
 
