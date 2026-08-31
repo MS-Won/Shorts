@@ -436,7 +436,7 @@ git commit -m "feat: add Claude LLM wrapper with retry"
 - Consumes: `pipeline.llm.call_llm(prompt, system=None, max_tokens=..., retries=...) -> str`; `pipeline.state.recent_combos(state, n) -> list[dict]`.
 - Produces: `generate_idea(recent: list[dict], call_llm=llm.call_llm) -> dict` returning exactly the keys `location`, `concept`, `hook`, `visual_style`, `audio_mood`. Task 5 (storyboard) consumes this dict shape directly.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_ideas.py`:
 ```python
@@ -498,12 +498,12 @@ def test_generate_idea_raises_after_max_attempts_of_invalid_json():
         ideas.generate_idea(recent=[], call_llm=fake_llm, max_attempts=2)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_ideas.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.ideas'`.
 
-- [ ] **Step 3: Implement `src/pipeline/ideas.py`**
+- [x] **Step 3: Implement `src/pipeline/ideas.py`**
 
 ```python
 import json
@@ -557,12 +557,12 @@ def generate_idea(recent: list[dict], call_llm=llm_module.call_llm, max_attempts
     raise IdeaGenerationError(f"could not get a valid idea after {max_attempts} attempts: {last_error}")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_ideas.py -v`
 Expected: 4 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/ideas.py tests/test_ideas.py
