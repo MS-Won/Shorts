@@ -38,7 +38,9 @@ def test_generate_image_sends_prompt_in_request_body(mock_post, tmp_path):
 
     _, kwargs = mock_post.call_args
     body = kwargs["json"]
-    assert body["contents"][0]["parts"][0]["text"] == "a rusty school bus exterior"
+    sent_prompt = body["contents"][0]["parts"][0]["text"]
+    assert "a rusty school bus exterior" in sent_prompt
+    assert "vertical" in sent_prompt.lower() and "9:16" in sent_prompt
 
 
 @patch("pipeline.image_gen.requests.post")

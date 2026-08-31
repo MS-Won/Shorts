@@ -96,3 +96,40 @@ def test_validate_storyboard_rejects_missing_stage():
 
 def test_validate_storyboard_accepts_valid_storyboard():
     storyboard.validate_storyboard(VALID_STORYBOARD)  # should not raise
+
+
+def test_validate_storyboard_rejects_over_60_seconds():
+    beats = [dict(b) for b in VALID_STORYBOARD["beats"]]
+    beats.append({"stage": "reveal", "type": "still_pan", "prompt": "extra",
+                   "pan": "in", "duration_sec": 30, "caption": "extra"})
+    bad = {**VALID_STORYBOARD, "beats": beats}
+    with pytest.raises(storyboard.StoryboardValidationError, match="60"):
+        storyboard.validate_storyboard(bad)
+
+
+def test_validate_storyboard_rejects_over_10_beats():
+    stages = ["setup", "progress", "twist", "reveal"]
+    beats = []
+    for i in range(11):
+        beats.append({
+            "stage": stages[i % len(stages)],
+            "type": "still_pan",
+            "prompt": f"shot {i}",
+            "pan": "in",
+            "duration_sec": 5,
+            "caption": f"caption {i}",
+        })
+    bad = {**VALID_STORYBOARD, "beats": beats}  # 11 beats * 5s = 55s (valid range, only beat count is bad)
+    with pytest.raises(storyboard.StoryboardValidationError, match="10"):
+        storyboard.validate_storyboard(bad)
+
+
+def test_validate_storyboard_rejects_invalid_transform_video_duration():
+    beats = [dict(b) for b in VALID_STORYBOARD["beats"]]
+    for b in beats:
+        if b["type"] == "transform_video":
+            b["duration_sec"] = 7  # not in the {5, 10} valid set
+            break
+    bad = {**VALID_STORYBOARD, "beats": beats}
+    with pytest.raises(storyboard.StoryboardValidationError, match="transform_video"):
+        storyboard.validate_storyboard(bad)

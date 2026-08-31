@@ -4,6 +4,7 @@ import subprocess
 _WIDTH = 1080
 _HEIGHT = 1920
 _FPS = 30
+_MIN_DURATION_SEC = 30
 
 _PAN_FILTERS = {
     "in": "zoompan=z='min(zoom+0.0015,1.3)':d={frames}:s={w}x{h}:fps={fps}",
@@ -106,4 +107,12 @@ def assemble_video(storyboard: dict, asset_paths: list[str], music_path: str,
 
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     _mix_music(concatenated_path, music_path, out_path)
+
+    final_duration = _probe_duration(out_path)
+    if final_duration < _MIN_DURATION_SEC:
+        raise ValueError(
+            f"final assembled video is {final_duration:.2f}s, under the required "
+            f"{_MIN_DURATION_SEC}s minimum (a source clip likely came back shorter "
+            "than its beat's requested duration_sec)"
+        )
     return out_path

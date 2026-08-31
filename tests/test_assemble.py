@@ -51,15 +51,15 @@ def test_assemble_video_produces_output_with_expected_total_duration(tmp_path):
     out_path = str(tmp_path / "final.mp4")
 
     _make_still(still1)
-    _make_clip(clip1, duration_sec=3)
-    _make_silent_wav(music, duration_sec=10)
+    _make_clip(clip1, duration_sec=15)
+    _make_silent_wav(music, duration_sec=40)
 
     storyboard = {
         "beats": [
             {"stage": "setup", "type": "still_pan", "prompt": "x", "pan": "in",
-             "duration_sec": 4, "caption": "intro caption"},
+             "duration_sec": 20, "caption": "intro caption"},
             {"stage": "progress", "type": "transform_video", "prompt_start": "a", "prompt_end": "b",
-             "duration_sec": 3, "caption": "progress caption"},
+             "duration_sec": 15, "caption": "progress caption"},
         ],
     }
 
@@ -67,7 +67,7 @@ def test_assemble_video_produces_output_with_expected_total_duration(tmp_path):
 
     assert result == out_path
     duration = _probe_duration(out_path)
-    assert 6.5 <= duration <= 7.5  # 4s + 3s, small ffmpeg rounding tolerance
+    assert 34.5 <= duration <= 35.5  # 20s + 15s, small ffmpeg rounding tolerance
 
 
 def test_assemble_video_output_is_vertical_1080x1920(tmp_path):
@@ -76,11 +76,11 @@ def test_assemble_video_output_is_vertical_1080x1920(tmp_path):
     out_path = str(tmp_path / "final.mp4")
 
     _make_still(still1)
-    _make_silent_wav(music, duration_sec=5)
+    _make_silent_wav(music, duration_sec=35)
 
     storyboard = {"beats": [
         {"stage": "setup", "type": "still_pan", "prompt": "x", "pan": "in",
-         "duration_sec": 4, "caption": "intro caption"},
+         "duration_sec": 33, "caption": "intro caption"},
     ]}
 
     assemble.assemble_video(storyboard, [still1], music, out_path, work_dir=str(tmp_path / "work"))
@@ -137,13 +137,36 @@ def test_assemble_video_with_percent_in_caption_does_not_raise(tmp_path):
     out_path = str(tmp_path / "final.mp4")
 
     _make_still(still1)
-    _make_silent_wav(music, duration_sec=5)
+    _make_silent_wav(music, duration_sec=35)
 
     storyboard = {"beats": [
         {"stage": "setup", "type": "still_pan", "prompt": "x", "pan": "in",
-         "duration_sec": 4, "caption": "100% satisfying"},
+         "duration_sec": 33, "caption": "100% satisfying"},
     ]}
 
     result = assemble.assemble_video(storyboard, [still1], music, out_path, work_dir=str(tmp_path / "work"))
     assert result == out_path
     assert os.path.exists(out_path)
+
+
+def test_assemble_video_raises_when_final_duration_under_30s_floor(tmp_path):
+    # The beat's nominal duration_sec (35s) is comfortably >= the 30s floor,
+    # but the actual rendered clip (a stand-in for a video-gen API returning
+    # a shorter-than-requested clip) is only 3s. _build_video_clip can't
+    # extend past the source's real length, so the final assembled video
+    # ends up far under 30s -- assemble_video must catch this rather than
+    # silently producing a short video.
+    clip1 = str(tmp_path / "clip1.mp4")
+    music = str(tmp_path / "music.wav")
+    out_path = str(tmp_path / "final.mp4")
+
+    _make_clip(clip1, duration_sec=3)
+    _make_silent_wav(music, duration_sec=60)
+
+    storyboard = {"beats": [
+        {"stage": "setup", "type": "transform_video", "prompt_start": "a", "prompt_end": "b",
+         "duration_sec": 35, "caption": "intro caption"},
+    ]}
+
+    with pytest.raises(ValueError, match="30"):
+        assemble.assemble_video(storyboard, [clip1], music, out_path, work_dir=str(tmp_path / "work"))

@@ -11,12 +11,16 @@ class ImageGenerationError(Exception):
 
 
 def generate_image(prompt: str, out_path: str) -> str:
+    # Nudge the model toward a vertical, 9:16-friendly composition so the
+    # downstream center-crop to 1080x1920 in assemble.py doesn't cut away a
+    # large portion of a shot the model framed for square/landscape.
+    full_prompt = f"{prompt}, vertical 9:16 aspect ratio, portrait orientation, centered composition"
     api_key = os.environ.get("GEMINI_API_KEY", "")
     response = requests.post(
         _ENDPOINT,
         params={"key": api_key},
         json={
-            "contents": [{"parts": [{"text": prompt}]}],
+            "contents": [{"parts": [{"text": full_prompt}]}],
             "generationConfig": {"responseModalities": ["IMAGE"]},
         },
         timeout=120,
