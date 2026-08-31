@@ -22,6 +22,7 @@ STORYBOARD = {
 
 
 _ALL_REQUIRED_ENV_VARS = {
+    "ANTHROPIC_API_KEY": "anthropic-key",
     "GEMINI_API_KEY": "gemini-key",
     "MINIMAX_API_KEY": "minimax-key",
     "TELEGRAM_BOT_TOKEN": "telegram-token",
@@ -146,6 +147,20 @@ def test_preflight_check_raises_on_missing_env_var(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     with pytest.raises(EnvironmentError, match="TELEGRAM_BOT_TOKEN"):
+        orchestrator._preflight_check()
+
+
+def test_preflight_check_raises_on_missing_anthropic_api_key(tmp_path, monkeypatch):
+    for name, value in _ALL_REQUIRED_ENV_VARS.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    manifest_path = tmp_path / "assets" / "music" / "manifest.json"
+    manifest_path.parent.mkdir(parents=True)
+    manifest_path.write_text(json.dumps({"tense": [{"file": "tense_1.mp3", "attribution": ""}]}))
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(EnvironmentError, match="ANTHROPIC_API_KEY"):
         orchestrator._preflight_check()
 
 

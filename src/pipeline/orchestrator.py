@@ -9,6 +9,7 @@ _MUSIC_DIR = os.path.join("assets", "music")
 _MUSIC_MANIFEST_PATH = os.path.join(_MUSIC_DIR, "manifest.json")
 
 _REQUIRED_ENV_VARS = [
+    "ANTHROPIC_API_KEY",
     "GEMINI_API_KEY",
     "MINIMAX_API_KEY",
     "TELEGRAM_BOT_TOKEN",

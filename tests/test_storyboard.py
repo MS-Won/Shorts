@@ -16,18 +16,18 @@ VALID_STORYBOARD = {
         {"stage": "setup", "type": "still_pan", "prompt": "empty rusty school bus exterior",
          "pan": "in", "duration_sec": 4, "caption": "found this abandoned school bus..."},
         {"stage": "progress", "type": "transform_video", "prompt_start": "gutted school bus interior",
-         "prompt_end": "half-built bunker interior with metal walls", "duration_sec": 5,
+         "prompt_end": "half-built bunker interior with metal walls", "duration_sec": 6,
          "caption": "day 1: stripping it down"},
         {"stage": "twist", "type": "transform_video", "prompt_start": "half-built bunker interior",
-         "prompt_end": "bunker interior revealing a hidden steel door", "duration_sec": 5,
+         "prompt_end": "bunker interior revealing a hidden steel door", "duration_sec": 6,
          "caption": "wait... there's a hidden room?"},
         {"stage": "reveal", "type": "still_pan", "prompt": "finished bunker school bus interior, dramatic lighting",
          "pan": "out", "duration_sec": 4, "caption": "the finished bunker bus"},
         {"stage": "reveal", "type": "transform_video", "prompt_start": "bunker bus interior daytime",
-         "prompt_end": "bunker bus interior with lights on at night", "duration_sec": 5,
+         "prompt_end": "bunker bus interior with lights on at night", "duration_sec": 6,
          "caption": "home sweet bunker"},
         {"stage": "progress", "type": "transform_video", "prompt_start": "bare metal walls",
-         "prompt_end": "insulated and painted walls", "duration_sec": 5,
+         "prompt_end": "insulated and painted walls", "duration_sec": 6,
          "caption": "insulating everything"},
         {"stage": "setup", "type": "still_pan", "prompt": "tools laid out before starting",
          "pan": "left", "duration_sec": 4, "caption": "let's get started"},
@@ -128,7 +128,7 @@ def test_validate_storyboard_rejects_invalid_transform_video_duration():
     beats = [dict(b) for b in VALID_STORYBOARD["beats"]]
     for b in beats:
         if b["type"] == "transform_video":
-            b["duration_sec"] = 7  # not in the {5, 10} valid set
+            b["duration_sec"] = 7  # not in the {6, 10} valid set
             break
     bad = {**VALID_STORYBOARD, "beats": beats}
     with pytest.raises(storyboard.StoryboardValidationError, match="transform_video"):

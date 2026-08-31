@@ -5,7 +5,7 @@ _REQUIRED_STAGES = {"setup", "progress", "twist", "reveal"}
 _MIN_DURATION_SEC = 30
 _MAX_DURATION_SEC = 60
 _MAX_BEATS = 10
-_VALID_TRANSFORM_DURATIONS = {5, 10}
+_VALID_TRANSFORM_DURATIONS = {6, 10}
 
 _SYSTEM_PROMPT = (
     "You are a short-form video storyboard writer. Given a 5-axis video concept, produce a "
@@ -15,7 +15,7 @@ _SYSTEM_PROMPT = (
     "transform_video/still_pan), duration_sec (a number), caption (a short on-screen text string). "
     "If type is transform_video, also include prompt_start and prompt_end (image generation "
     "prompts describing the before/after of that shot); transform_video beats must use "
-    "duration_sec of exactly 5 or 10, no other value. If type is still_pan, also include "
+    "duration_sec of exactly 6 or 10, no other value. If type is still_pan, also include "
     "prompt (an image generation prompt) and pan (one of in/out/left/right). The beats must sum "
     "to at least 30 seconds and at most 60 seconds total, must use no more than 10 beats, and "
     "must cover all four stages: setup, progress, twist, reveal."

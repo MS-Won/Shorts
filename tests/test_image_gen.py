@@ -41,6 +41,7 @@ def test_generate_image_sends_prompt_in_request_body(mock_post, tmp_path):
     sent_prompt = body["contents"][0]["parts"][0]["text"]
     assert "a rusty school bus exterior" in sent_prompt
     assert "vertical" in sent_prompt.lower() and "9:16" in sent_prompt
+    assert body["generationConfig"]["imageConfig"]["aspectRatio"] == "9:16"
 
 
 @patch("pipeline.image_gen.requests.post")

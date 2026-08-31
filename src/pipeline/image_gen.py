@@ -21,7 +21,10 @@ def generate_image(prompt: str, out_path: str) -> str:
         params={"key": api_key},
         json={
             "contents": [{"parts": [{"text": full_prompt}]}],
-            "generationConfig": {"responseModalities": ["IMAGE"]},
+            "generationConfig": {
+                "responseModalities": ["IMAGE"],
+                "imageConfig": {"aspectRatio": "9:16"},
+            },
         },
         timeout=120,
     )
