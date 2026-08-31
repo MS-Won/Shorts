@@ -19,8 +19,12 @@ def _escape_caption(text: str) -> str:
 
 def _drawtext_filter(caption: str) -> str:
     escaped = _escape_caption(caption)
+    # expansion=none disables drawtext's own %{...} expansion syntax, so a
+    # literal '%' in the caption (e.g. "100% satisfying") is rendered as-is
+    # instead of being parsed as the start of an expansion sequence (which
+    # otherwise crashes ffmpeg with "Stray % near ...").
     return (
-        f"drawtext=text='{escaped}':fontcolor=white:fontsize=64:"
+        f"drawtext=text='{escaped}':expansion=none:fontcolor=white:fontsize=64:"
         "borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-th-160"
     )
 
@@ -54,7 +58,23 @@ def _concat_clips(clip_paths: list[str], work_dir: str, out_path: str) -> None:
     ], check=True, capture_output=True)
 
 
+def _probe_duration(path: str) -> float:
+    result = subprocess.run([
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", path,
+    ], check=True, capture_output=True, text=True)
+    return float(result.stdout.strip())
+
+
 def _mix_music(video_path: str, music_path: str, out_path: str) -> None:
+    video_duration = _probe_duration(video_path)
+    music_duration = _probe_duration(music_path)
+    if music_duration < video_duration:
+        raise ValueError(
+            f"Music track ({music_duration:.2f}s) is shorter than the "
+            f"concatenated video ({video_duration:.2f}s); refusing to mix, "
+            "as that would silently truncate the final video."
+        )
     subprocess.run([
         "ffmpeg", "-y", "-i", video_path, "-i", music_path,
         "-filter_complex", "[1:a]volume=0.5[a]",
@@ -66,6 +86,12 @@ def assemble_video(storyboard: dict, asset_paths: list[str], music_path: str,
                     out_path: str, work_dir: str = "work") -> str:
     os.makedirs(work_dir, exist_ok=True)
     beats = storyboard["beats"]
+    if len(asset_paths) != len(beats):
+        raise ValueError(
+            f"asset_paths length ({len(asset_paths)}) does not match "
+            f"beats length ({len(beats)}); refusing to silently truncate "
+            "the assembled video."
+        )
     clip_paths = []
     for i, (beat, asset_path) in enumerate(zip(beats, asset_paths)):
         clip_path = os.path.join(work_dir, f"beat_{i}.mp4")

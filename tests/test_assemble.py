@@ -1,7 +1,9 @@
 import json
+import os
 import subprocess
 import wave
 import struct
+import pytest
 from PIL import Image
 from pipeline import assemble
 
@@ -83,3 +85,65 @@ def test_assemble_video_output_is_vertical_1080x1920(tmp_path):
 
     assemble.assemble_video(storyboard, [still1], music, out_path, work_dir=str(tmp_path / "work"))
     assert _probe_resolution(out_path) == (1080, 1920)
+
+
+def test_assemble_video_raises_on_asset_beat_count_mismatch(tmp_path):
+    still1 = str(tmp_path / "still1.png")
+    music = str(tmp_path / "music.wav")
+    out_path = str(tmp_path / "final.mp4")
+
+    _make_still(still1)
+    _make_silent_wav(music, duration_sec=30)
+
+    storyboard = {
+        "beats": [
+            {"stage": "setup", "type": "still_pan", "prompt": "x", "pan": "in",
+             "duration_sec": 4, "caption": "intro caption"},
+            {"stage": "progress", "type": "still_pan", "prompt": "y", "pan": "out",
+             "duration_sec": 4, "caption": "progress caption"},
+            {"stage": "climax", "type": "still_pan", "prompt": "z", "pan": "left",
+             "duration_sec": 4, "caption": "climax caption"},
+            {"stage": "resolution", "type": "still_pan", "prompt": "w", "pan": "right",
+             "duration_sec": 4, "caption": "resolution caption"},
+        ],
+    }
+
+    # Only one asset path provided for a 4-beat storyboard.
+    with pytest.raises(ValueError):
+        assemble.assemble_video(storyboard, [still1], music, out_path, work_dir=str(tmp_path / "work"))
+
+
+def test_assemble_video_raises_when_music_shorter_than_video(tmp_path):
+    still1 = str(tmp_path / "still1.png")
+    music = str(tmp_path / "music.wav")
+    out_path = str(tmp_path / "final.mp4")
+
+    _make_still(still1)
+    _make_silent_wav(music, duration_sec=2)
+
+    storyboard = {"beats": [
+        {"stage": "setup", "type": "still_pan", "prompt": "x", "pan": "in",
+         "duration_sec": 4, "caption": "intro caption"},
+    ]}
+
+    with pytest.raises(ValueError):
+        assemble.assemble_video(storyboard, [still1], music, out_path, work_dir=str(tmp_path / "work"))
+    assert not os.path.exists(out_path)
+
+
+def test_assemble_video_with_percent_in_caption_does_not_raise(tmp_path):
+    still1 = str(tmp_path / "still1.png")
+    music = str(tmp_path / "music.wav")
+    out_path = str(tmp_path / "final.mp4")
+
+    _make_still(still1)
+    _make_silent_wav(music, duration_sec=5)
+
+    storyboard = {"beats": [
+        {"stage": "setup", "type": "still_pan", "prompt": "x", "pan": "in",
+         "duration_sec": 4, "caption": "100% satisfying"},
+    ]}
+
+    result = assemble.assemble_video(storyboard, [still1], music, out_path, work_dir=str(tmp_path / "work"))
+    assert result == out_path
+    assert os.path.exists(out_path)
