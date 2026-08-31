@@ -80,12 +80,12 @@ Each module has exactly one job: `state.py` never talks to a network, `llm.py` i
 **Interfaces:**
 - Produces: the `src/pipeline` package that every later task imports from; the `state/history.json` file that Task 2 reads/writes; the `requirements.txt` every later task's dependencies get added to.
 
-- [ ] **Step 1: Verify prerequisites are installed**
+- [x] **Step 1: Verify prerequisites are installed**
 
 Run: `python --version && ffmpeg -version && ffprobe -version`
 Expected: Python 3.11+ prints a version; `ffmpeg`/`ffprobe` each print a version banner. If ffmpeg/ffprobe are missing, install them (e.g. `winget install Gyan.FFmpeg` on Windows, or `sudo apt-get install -y ffmpeg` on the GitHub Actions Ubuntu runner — that install happens in Task 13's workflow file, not here) before continuing.
 
-- [ ] **Step 2: Create `requirements.txt`**
+- [x] **Step 2: Create `requirements.txt`**
 
 ```
 anthropic>=0.40.0
@@ -94,12 +94,12 @@ Pillow>=10.4.0
 pytest>=8.3.0
 ```
 
-- [ ] **Step 3: Install dependencies**
+- [x] **Step 3: Install dependencies**
 
 Run: `python -m pip install -r requirements.txt`
 Expected: all four packages install without error.
 
-- [ ] **Step 4: Create `.env.example`**
+- [x] **Step 4: Create `.env.example`**
 
 ```
 # Anthropic (idea + storyboard generation)
@@ -121,7 +121,7 @@ YOUTUBE_CLIENT_SECRET=
 YOUTUBE_REFRESH_TOKEN=
 ```
 
-- [ ] **Step 5: Create `.gitignore`**
+- [x] **Step 5: Create `.gitignore`**
 
 ```
 __pycache__/
@@ -134,7 +134,7 @@ work/
 .pytest_cache/
 ```
 
-- [ ] **Step 6: Create `pytest.ini`**
+- [x] **Step 6: Create `pytest.ini`**
 
 ```ini
 [pytest]
@@ -142,14 +142,14 @@ testpaths = tests
 pythonpath = src
 ```
 
-- [ ] **Step 7: Create the package init file**
+- [x] **Step 7: Create the package init file**
 
 `src/pipeline/__init__.py`:
 ```python
 ```
 (empty file — just marks `pipeline` as a package)
 
-- [ ] **Step 8: Create the initial empty state file**
+- [x] **Step 8: Create the initial empty state file**
 
 `state/history.json`:
 ```json
@@ -160,12 +160,12 @@ pythonpath = src
 }
 ```
 
-- [ ] **Step 9: Verify pytest runs cleanly with zero tests**
+- [x] **Step 9: Verify pytest runs cleanly with zero tests**
 
 Run: `python -m pytest`
 Expected: `no tests ran` (exit code 5) or `collected 0 items` — no import errors.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add requirements.txt .env.example .gitignore pytest.ini src/pipeline/__init__.py state/history.json
@@ -192,7 +192,7 @@ git commit -m "chore: scaffold pipeline package, deps, and empty state file"
 
   Every later task that touches state uses exactly these six function names and signatures.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_state.py`:
 ```python
@@ -247,12 +247,12 @@ def test_record_published_appends_entry():
                                  "metadata": {"title": "Built inside a school bus"}}]
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_state.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.state'` (or import error) on every test.
 
-- [ ] **Step 3: Implement `src/pipeline/state.py`**
+- [x] **Step 3: Implement `src/pipeline/state.py`**
 
 ```python
 import json
@@ -299,12 +299,12 @@ def record_published(state: dict, video_id: str, youtube_id: str, metadata: dict
     })
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_state.py -v`
 Expected: 6 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/state.py tests/test_state.py
@@ -323,7 +323,7 @@ git commit -m "feat: add state persistence module"
 - Consumes: `ANTHROPIC_API_KEY` env var.
 - Produces: `call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, retries: int = 3) -> str`. Every module that needs LLM output (Task 4, Task 5) imports this exact function.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_llm.py`:
 ```python
@@ -363,12 +363,12 @@ def test_call_llm_retries_then_raises_after_exhausting_retries(mock_client):
     assert mock_client.messages.create.call_count == 2
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_llm.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.llm'`.
 
-- [ ] **Step 3: Implement `src/pipeline/llm.py`**
+- [x] **Step 3: Implement `src/pipeline/llm.py`**
 
 ```python
 import os
@@ -403,17 +403,26 @@ def call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, ret
     raise LLMError(f"LLM call failed after {retries} attempts: {last_error}")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_llm.py -v`
 Expected: 3 passed. (The retry test will sleep ~2s for the backoff between attempt 1 and 2 — acceptable for a unit test; do not add real delay beyond that.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/llm.py tests/test_llm.py
 git commit -m "feat: add Claude LLM wrapper with retry"
 ```
+
+> **구현 시 계획과 다르게 한 점 (Task 3):**
+> 1. 모델을 `claude-sonnet-5` → `claude-opus-5`로 바꾸고 `ANTHROPIC_MODEL`로 덮어쓸 수 있게 했다.
+>    영상당 LLM 비용 차이는 약 $0.04로 $3~5 예산에서 무시할 수준인 반면, 아이디어·스토리보드
+>    품질은 이 채널이 "AI slop" 판정을 피하는 유일한 방어선이다(스펙 3.3절).
+> 2. `response.content[0].text` → 첫 번째 **text 블록**을 찾아 반환하도록 고쳤다.
+>    현행 Claude 모델은 thinking이 기본 on이라 `content[0]`이 ThinkingBlock인 경우가 흔한데,
+>    ThinkingBlock에는 `.text`가 없어 AttributeError가 나고 그게 재시도 루프에 삼켜져
+>    LLMError로 둔갑한다. 텍스트 블록이 아예 없으면 명시적으로 LLMError를 던진다.
 
 ---
 
@@ -427,7 +436,7 @@ git commit -m "feat: add Claude LLM wrapper with retry"
 - Consumes: `pipeline.llm.call_llm(prompt, system=None, max_tokens=..., retries=...) -> str`; `pipeline.state.recent_combos(state, n) -> list[dict]`.
 - Produces: `generate_idea(recent: list[dict], call_llm=llm.call_llm) -> dict` returning exactly the keys `location`, `concept`, `hook`, `visual_style`, `audio_mood`. Task 5 (storyboard) consumes this dict shape directly.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_ideas.py`:
 ```python
@@ -489,12 +498,12 @@ def test_generate_idea_raises_after_max_attempts_of_invalid_json():
         ideas.generate_idea(recent=[], call_llm=fake_llm, max_attempts=2)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_ideas.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.ideas'`.
 
-- [ ] **Step 3: Implement `src/pipeline/ideas.py`**
+- [x] **Step 3: Implement `src/pipeline/ideas.py`**
 
 ```python
 import json
@@ -548,12 +557,12 @@ def generate_idea(recent: list[dict], call_llm=llm_module.call_llm, max_attempts
     raise IdeaGenerationError(f"could not get a valid idea after {max_attempts} attempts: {last_error}")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_ideas.py -v`
 Expected: 4 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/ideas.py tests/test_ideas.py
@@ -577,7 +586,7 @@ git commit -m "feat: add 5-axis idea generator with dedup-aware prompting"
 
   Task 9 (assembly) and the orchestrator (Task 12) consume this exact beat schema.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_storyboard.py`:
 ```python
@@ -681,12 +690,12 @@ def test_validate_storyboard_accepts_valid_storyboard():
     storyboard.validate_storyboard(VALID_STORYBOARD)  # should not raise
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_storyboard.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.storyboard'`.
 
-- [ ] **Step 3: Implement `src/pipeline/storyboard.py`**
+- [x] **Step 3: Implement `src/pipeline/storyboard.py`**
 
 ```python
 import json
@@ -760,12 +769,12 @@ def generate_storyboard(idea: dict, call_llm=llm_module.call_llm, max_attempts: 
     raise StoryboardValidationError(f"could not get a valid storyboard after {max_attempts} attempts: {last_error}")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_storyboard.py -v`
 Expected: 6 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/storyboard.py tests/test_storyboard.py
@@ -788,7 +797,7 @@ git commit -m "feat: add storyboard generator with 30s/4-stage validation"
 
 **Manual prerequisite (not automatable):** YouTube's Audio Library has no public API — tracks must be downloaded once by hand from https://studio.youtube.com → Audio Library, using only tracks marked safe for monetized use with no attribution burden (or "attribution required" tracks paired with the attribution text stored in the manifest). This task creates the manifest format and a `README.md` documenting the manual step; it does not (and cannot) download real audio files as part of automated implementation.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_music.py`:
 ```python
@@ -836,12 +845,12 @@ def test_pick_music_raises_when_manifest_is_empty(tmp_path):
         music.pick_music("anything", manifest_path=manifest_path)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_music.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.music'`.
 
-- [ ] **Step 3: Implement `src/pipeline/music.py`**
+- [x] **Step 3: Implement `src/pipeline/music.py`**
 
 ```python
 import json
@@ -873,13 +882,13 @@ def pick_music(mood: str, manifest_path: str = "assets/music/manifest.json",
     return random.choice(pool)
 ```
 
-- [ ] **Step 4: Create `assets/music/manifest.json`**
+- [x] **Step 4: Create `assets/music/manifest.json`**
 
 ```json
 {}
 ```
 
-- [ ] **Step 5: Create `assets/music/README.md`**
+- [x] **Step 5: Create `assets/music/README.md`**
 
 ```markdown
 # Music assets
@@ -905,12 +914,12 @@ Add at least 8-10 tracks across a few moods before the first real pipeline run, 
 `pick_music` has real variety instead of reusing the same track every day.
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_music.py -v`
 Expected: 4 passed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/pipeline/music.py tests/test_music.py assets/music/manifest.json assets/music/README.md
@@ -931,7 +940,7 @@ git commit -m "feat: add music picker and document manual audio-library setup st
 
 **Before implementing:** the Gemini image-generation response schema for `gemini-3-pro-image-preview` is new enough that it should be double-checked against the live docs at https://ai.google.dev/gemini-api/docs/image-generation before relying on this in production. The implementation below follows Gemini's documented `generateContent` + `responseModalities: ["IMAGE"]` pattern; adjust the response-parsing path in Step 3 if the live schema differs.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_image_gen.py`:
 ```python
@@ -990,12 +999,12 @@ def test_generate_image_raises_on_non_200(mock_post, tmp_path):
         image_gen.generate_image("prompt", str(tmp_path / "out.png"))
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_image_gen.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.image_gen'`.
 
-- [ ] **Step 3: Implement `src/pipeline/image_gen.py`**
+- [x] **Step 3: Implement `src/pipeline/image_gen.py`**
 
 ```python
 import base64
@@ -1036,12 +1045,12 @@ def generate_image(prompt: str, out_path: str) -> str:
     return out_path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_image_gen.py -v`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/image_gen.py tests/test_image_gen.py
@@ -1062,7 +1071,7 @@ git commit -m "feat: add Nano Banana Pro image generation client"
 
 **Before implementing:** verify the current MiniMax/Hailuo video generation API shape (submit/poll/retrieve endpoints and field names) against https://www.minimax.io/platform/document before relying on this in production — the implementation below follows their documented async submit → poll → retrieve-download-url pattern; adjust endpoint paths/field names in Step 3 if they've changed.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_video_gen.py`:
 ```python
@@ -1137,12 +1146,12 @@ def test_generate_video_segment_raises_after_max_polls(mock_post, mock_get, tmp_
                                           poll_interval_sec=0, max_polls=3)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_video_gen.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.video_gen'`.
 
-- [ ] **Step 3: Implement `src/pipeline/video_gen.py`**
+- [x] **Step 3: Implement `src/pipeline/video_gen.py`**
 
 ```python
 import base64
@@ -1211,12 +1220,12 @@ def generate_video_segment(start_image_path: str, end_image_path: str, duration_
     return out_path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_video_gen.py -v`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/video_gen.py tests/test_video_gen.py
@@ -1235,7 +1244,7 @@ git commit -m "feat: add Hailuo first-last-frame video generation client"
 - Consumes: a `storyboard` dict (Task 5 shape), a parallel `asset_paths: list[str]` (one path per beat, `.png` from Task 7 for `still_pan` beats or `.mp4` from Task 8 for `transform_video` beats), a `music_path` (from Task 6), and a `work_dir` for intermediates.
 - Produces: `assemble_video(storyboard: dict, asset_paths: list[str], music_path: str, out_path: str, work_dir: str = "work") -> str` (returns `out_path`, a finished 1080×1920 mp4 with captions burned in and music mixed under).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 These tests build real tiny fixture assets with ffmpeg/Pillow (no mocking — `assemble.py` never makes network calls, so its tests exercise the real ffmpeg binary against fast, tiny inputs) and check the output with `ffprobe`.
 
@@ -1328,12 +1337,12 @@ def test_assemble_video_output_is_vertical_1080x1920(tmp_path):
     assert _probe_resolution(out_path) == (1080, 1920)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_assemble.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.assemble'`.
 
-- [ ] **Step 3: Implement `src/pipeline/assemble.py`**
+- [x] **Step 3: Implement `src/pipeline/assemble.py`**
 
 ```python
 import os
@@ -1421,12 +1430,12 @@ def assemble_video(storyboard: dict, asset_paths: list[str], music_path: str,
     return out_path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_assemble.py -v`
 Expected: 2 passed. (These tests shell out to real `ffmpeg`/`ffprobe` and take a few seconds — that's expected.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/assemble.py tests/test_assemble.py
@@ -1445,7 +1454,7 @@ git commit -m "feat: add ffmpeg assembly (Ken Burns stills, captions, music mix)
 - Consumes: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` env vars; a finished video path (from Task 9's `assemble_video`).
 - Produces: `request_approval(video_path: str, title: str, description: str, poll_interval_sec: int = 15, timeout_sec: int = 3600) -> bool`. The orchestrator (Task 12) uses this return value to decide whether to publish.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_telegram_approval.py`:
 ```python
@@ -1529,12 +1538,12 @@ def test_request_approval_times_out_to_false(mock_post, mock_get, tmp_path):
     assert result is False
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_telegram_approval.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.telegram_approval'`.
 
-- [ ] **Step 3: Implement `src/pipeline/telegram_approval.py`**
+- [x] **Step 3: Implement `src/pipeline/telegram_approval.py`**
 
 ```python
 import json
@@ -1602,12 +1611,12 @@ def request_approval(video_path: str, title: str, description: str,
     return decision == "approve"
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_telegram_approval.py -v`
 Expected: 4 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/telegram_approval.py tests/test_telegram_approval.py
@@ -1630,7 +1639,7 @@ git commit -m "feat: add Telegram human-approval gate"
 
 **Before implementing:** confirm the exact synthetic-media disclosure field name (used below as `status.containsSyntheticMedia`) against the current YouTube Data API v3 reference at https://developers.google.com/youtube/v3/docs/videos/insert before relying on this in production, since it was added recently.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_youtube_publish.py`:
 ```python
@@ -1691,12 +1700,12 @@ def test_publish_video_raises_on_upload_failure(mock_post, tmp_path):
         youtube_publish.publish_video(str(video_path), "title", "desc", ["tag1"])
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_youtube_publish.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.youtube_publish'`.
 
-- [ ] **Step 3: Implement `src/pipeline/youtube_publish.py`**
+- [x] **Step 3: Implement `src/pipeline/youtube_publish.py`**
 
 ```python
 import json
@@ -1758,12 +1767,12 @@ def publish_video(video_path: str, title: str, description: str, tags: list[str]
     return response.json()["id"]
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_youtube_publish.py -v`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/youtube_publish.py tests/test_youtube_publish.py
@@ -1782,7 +1791,7 @@ git commit -m "feat: add YouTube publish client with synthetic-media disclosure"
 - Consumes: every module from Tasks 2–11, all called through their exact function names/signatures listed in those tasks' Interfaces sections.
 - Produces: `run_pipeline(work_dir: str = "work", state_path: str = "state/history.json") -> dict | None` returning a result summary dict (`{"published": bool, "youtube_id": str | None, "cost_usd": float}`) or `None` if idea/storyboard generation failed outright. This is the function Task 13's GitHub Actions workflow invokes via a CLI entry point.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Since every dependency is already unit-tested in isolation, the orchestrator test verifies *wiring*: that it calls each module in the right order with the right data flowing between them, using mocks for every dependency.
 
@@ -1868,12 +1877,12 @@ def test_run_pipeline_does_not_publish_on_rejection(mock_idea, mock_storyboard, 
     mock_publish.assert_not_called()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_orchestrator.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.orchestrator'`.
 
-- [ ] **Step 3: Implement `src/pipeline/orchestrator.py`**
+- [x] **Step 3: Implement `src/pipeline/orchestrator.py`**
 
 ```python
 import os
@@ -1941,17 +1950,17 @@ if __name__ == "__main__":
     print(result)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_orchestrator.py -v`
 Expected: 2 passed.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `python -m pytest -v`
 Expected: all tests across every module pass (state, llm, ideas, storyboard, music, image_gen, video_gen, assemble, telegram_approval, youtube_publish, orchestrator).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/pipeline/orchestrator.py tests/test_orchestrator.py
@@ -1970,7 +1979,7 @@ git commit -m "feat: add orchestrator wiring the full daily pipeline"
 - Consumes: `run_pipeline()` from Task 12 as the workflow's entry point; all the env vars listed in `.env.example` (Task 1), sourced from GitHub Actions Secrets.
 - Produces: a scheduled CI job; no code interface (this is the deployment task).
 
-- [ ] **Step 1: Create the workflow file**
+- [x] **Step 1: Create the workflow file**
 
 `.github/workflows/daily-shorts.yml`:
 ```yaml
@@ -2022,7 +2031,7 @@ jobs:
           git push
 ```
 
-- [ ] **Step 2: Add setup instructions to `README.md`**
+- [x] **Step 2: Add setup instructions to `README.md`**
 
 Read the current `README.md` first (created in the brainstorming phase), then append this section:
 
@@ -2043,19 +2052,19 @@ Read the current `README.md` first (created in the brainstorming phase), then ap
    the Actions tab ("Run workflow").
 ```
 
-- [ ] **Step 3: Verify the workflow YAML is valid**
+- [x] **Step 3: Verify the workflow YAML is valid**
 
 Run: `python -c "import yaml; yaml.safe_load(open('.github/workflows/daily-shorts.yml'))"`
 Expected: no error (if `pyyaml` isn't installed, run `python -m pip install pyyaml` first just for this check — it is not a runtime dependency of the pipeline itself).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/daily-shorts.yml README.md
 git commit -m "ci: add daily GitHub Actions pipeline workflow"
 ```
 
-- [ ] **Step 5: Push everything to GitHub**
+- [x] **Step 5: Push everything to GitHub**
 
 ```bash
 git push -u origin main
