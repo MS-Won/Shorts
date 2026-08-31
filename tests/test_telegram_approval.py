@@ -124,3 +124,16 @@ def test_request_approval_raises_when_credentials_are_missing(mock_post, video, 
     with pytest.raises(telegram_approval.TelegramError, match="TELEGRAM_BOT_TOKEN"):
         telegram_approval.request_approval(video, "title", "desc")
     mock_post.assert_not_called()
+
+
+@patch("pipeline.telegram_approval.requests.get")
+@patch("pipeline.telegram_approval.requests.post")
+def test_request_approval_uses_the_configured_default_timeout(mock_post, mock_get, video, monkeypatch):
+    # On GitHub Actions every minute of this wait is a billed minute, so the
+    # ceiling has to be settable from the environment.
+    monkeypatch.setattr(telegram_approval, "DEFAULT_TIMEOUT_SEC", 0)
+    mock_post.return_value = _resp({"ok": True, "result": {"message_id": 42}})
+    mock_get.return_value = _resp({"ok": True, "result": []})
+
+    assert telegram_approval.request_approval(video, "t", "d", poll_interval_sec=0) is False
+    assert mock_get.call_count == 1

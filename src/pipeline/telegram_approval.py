@@ -16,6 +16,10 @@ API_BASE = "https://api.telegram.org"
 APPROVE = "approve"
 REJECT = "reject"
 
+# The pipeline blocks here, and on GitHub Actions the job is billed for every
+# minute of that wait — so the ceiling is configurable per environment.
+DEFAULT_TIMEOUT_SEC = int(os.environ.get("APPROVAL_TIMEOUT_SEC", "3600"))
+
 
 class TelegramError(Exception):
     pass
@@ -96,7 +100,9 @@ def _poll_for_decision(token: str, message_id: int, poll_interval_sec: int,
 
 
 def request_approval(video_path: str, title: str, description: str,
-                     poll_interval_sec: int = 15, timeout_sec: int = 3600) -> bool:
+                     poll_interval_sec: int = 15, timeout_sec: int | None = None) -> bool:
+    if timeout_sec is None:
+        timeout_sec = DEFAULT_TIMEOUT_SEC
     token = _require("TELEGRAM_BOT_TOKEN")
     chat_id = _require("TELEGRAM_CHAT_ID")
 

@@ -1979,7 +1979,7 @@ git commit -m "feat: add orchestrator wiring the full daily pipeline"
 - Consumes: `run_pipeline()` from Task 12 as the workflow's entry point; all the env vars listed in `.env.example` (Task 1), sourced from GitHub Actions Secrets.
 - Produces: a scheduled CI job; no code interface (this is the deployment task).
 
-- [ ] **Step 1: Create the workflow file**
+- [x] **Step 1: Create the workflow file**
 
 `.github/workflows/daily-shorts.yml`:
 ```yaml
@@ -2031,7 +2031,7 @@ jobs:
           git push
 ```
 
-- [ ] **Step 2: Add setup instructions to `README.md`**
+- [x] **Step 2: Add setup instructions to `README.md`**
 
 Read the current `README.md` first (created in the brainstorming phase), then append this section:
 
@@ -2052,19 +2052,19 @@ Read the current `README.md` first (created in the brainstorming phase), then ap
    the Actions tab ("Run workflow").
 ```
 
-- [ ] **Step 3: Verify the workflow YAML is valid**
+- [x] **Step 3: Verify the workflow YAML is valid**
 
 Run: `python -c "import yaml; yaml.safe_load(open('.github/workflows/daily-shorts.yml'))"`
 Expected: no error (if `pyyaml` isn't installed, run `python -m pip install pyyaml` first just for this check — it is not a runtime dependency of the pipeline itself).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/daily-shorts.yml README.md
 git commit -m "ci: add daily GitHub Actions pipeline workflow"
 ```
 
-- [ ] **Step 5: Push everything to GitHub**
+- [x] **Step 5: Push everything to GitHub**
 
 ```bash
 git push -u origin main
