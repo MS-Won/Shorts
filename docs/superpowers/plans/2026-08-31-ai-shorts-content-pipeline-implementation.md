@@ -797,7 +797,7 @@ git commit -m "feat: add storyboard generator with 30s/4-stage validation"
 
 **Manual prerequisite (not automatable):** YouTube's Audio Library has no public API — tracks must be downloaded once by hand from https://studio.youtube.com → Audio Library, using only tracks marked safe for monetized use with no attribution burden (or "attribution required" tracks paired with the attribution text stored in the manifest). This task creates the manifest format and a `README.md` documenting the manual step; it does not (and cannot) download real audio files as part of automated implementation.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_music.py`:
 ```python
@@ -845,12 +845,12 @@ def test_pick_music_raises_when_manifest_is_empty(tmp_path):
         music.pick_music("anything", manifest_path=manifest_path)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_music.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.music'`.
 
-- [ ] **Step 3: Implement `src/pipeline/music.py`**
+- [x] **Step 3: Implement `src/pipeline/music.py`**
 
 ```python
 import json
@@ -882,13 +882,13 @@ def pick_music(mood: str, manifest_path: str = "assets/music/manifest.json",
     return random.choice(pool)
 ```
 
-- [ ] **Step 4: Create `assets/music/manifest.json`**
+- [x] **Step 4: Create `assets/music/manifest.json`**
 
 ```json
 {}
 ```
 
-- [ ] **Step 5: Create `assets/music/README.md`**
+- [x] **Step 5: Create `assets/music/README.md`**
 
 ```markdown
 # Music assets
@@ -914,12 +914,12 @@ Add at least 8-10 tracks across a few moods before the first real pipeline run, 
 `pick_music` has real variety instead of reusing the same track every day.
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_music.py -v`
 Expected: 4 passed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/pipeline/music.py tests/test_music.py assets/music/manifest.json assets/music/README.md
