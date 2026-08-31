@@ -1,1 +1,9 @@
 .worktrees/
+__pycache__/
+*.pyc
+.env
+work/
+*.mp4
+*.png
+!assets/music/**
+.pytest_cache/
