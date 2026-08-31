@@ -1071,7 +1071,7 @@ git commit -m "feat: add Nano Banana Pro image generation client"
 
 **Before implementing:** verify the current MiniMax/Hailuo video generation API shape (submit/poll/retrieve endpoints and field names) against https://www.minimax.io/platform/document before relying on this in production — the implementation below follows their documented async submit → poll → retrieve-download-url pattern; adjust endpoint paths/field names in Step 3 if they've changed.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_video_gen.py`:
 ```python
@@ -1146,12 +1146,12 @@ def test_generate_video_segment_raises_after_max_polls(mock_post, mock_get, tmp_
                                           poll_interval_sec=0, max_polls=3)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_video_gen.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.video_gen'`.
 
-- [ ] **Step 3: Implement `src/pipeline/video_gen.py`**
+- [x] **Step 3: Implement `src/pipeline/video_gen.py`**
 
 ```python
 import base64
@@ -1220,12 +1220,12 @@ def generate_video_segment(start_image_path: str, end_image_path: str, duration_
     return out_path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_video_gen.py -v`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/video_gen.py tests/test_video_gen.py
