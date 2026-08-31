@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 import wave
 
@@ -6,6 +7,14 @@ import pytest
 from PIL import Image
 
 from pipeline import assemble
+
+# These tests drive the real ffmpeg binary. Without it they fail with a pile of
+# unrelated-looking errors, so say plainly what is missing instead.
+pytestmark = pytest.mark.skipif(
+    shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None,
+    reason="ffmpeg/ffprobe not on PATH — install ffmpeg (winget install Gyan.FFmpeg) "
+           "and reopen the terminal so the updated PATH is picked up",
+)
 
 
 def _make_still(path, color=(200, 50, 50)):
