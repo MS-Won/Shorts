@@ -1639,7 +1639,7 @@ git commit -m "feat: add Telegram human-approval gate"
 
 **Before implementing:** confirm the exact synthetic-media disclosure field name (used below as `status.containsSyntheticMedia`) against the current YouTube Data API v3 reference at https://developers.google.com/youtube/v3/docs/videos/insert before relying on this in production, since it was added recently.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_youtube_publish.py`:
 ```python
@@ -1700,12 +1700,12 @@ def test_publish_video_raises_on_upload_failure(mock_post, tmp_path):
         youtube_publish.publish_video(str(video_path), "title", "desc", ["tag1"])
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_youtube_publish.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.youtube_publish'`.
 
-- [ ] **Step 3: Implement `src/pipeline/youtube_publish.py`**
+- [x] **Step 3: Implement `src/pipeline/youtube_publish.py`**
 
 ```python
 import json
@@ -1767,12 +1767,12 @@ def publish_video(video_path: str, title: str, description: str, tags: list[str]
     return response.json()["id"]
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_youtube_publish.py -v`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/youtube_publish.py tests/test_youtube_publish.py
