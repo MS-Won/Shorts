@@ -80,12 +80,12 @@ Each module has exactly one job: `state.py` never talks to a network, `llm.py` i
 **Interfaces:**
 - Produces: the `src/pipeline` package that every later task imports from; the `state/history.json` file that Task 2 reads/writes; the `requirements.txt` every later task's dependencies get added to.
 
-- [ ] **Step 1: Verify prerequisites are installed**
+- [x] **Step 1: Verify prerequisites are installed**
 
 Run: `python --version && ffmpeg -version && ffprobe -version`
 Expected: Python 3.11+ prints a version; `ffmpeg`/`ffprobe` each print a version banner. If ffmpeg/ffprobe are missing, install them (e.g. `winget install Gyan.FFmpeg` on Windows, or `sudo apt-get install -y ffmpeg` on the GitHub Actions Ubuntu runner — that install happens in Task 13's workflow file, not here) before continuing.
 
-- [ ] **Step 2: Create `requirements.txt`**
+- [x] **Step 2: Create `requirements.txt`**
 
 ```
 anthropic>=0.40.0
@@ -94,12 +94,12 @@ Pillow>=10.4.0
 pytest>=8.3.0
 ```
 
-- [ ] **Step 3: Install dependencies**
+- [x] **Step 3: Install dependencies**
 
 Run: `python -m pip install -r requirements.txt`
 Expected: all four packages install without error.
 
-- [ ] **Step 4: Create `.env.example`**
+- [x] **Step 4: Create `.env.example`**
 
 ```
 # Anthropic (idea + storyboard generation)
@@ -121,7 +121,7 @@ YOUTUBE_CLIENT_SECRET=
 YOUTUBE_REFRESH_TOKEN=
 ```
 
-- [ ] **Step 5: Create `.gitignore`**
+- [x] **Step 5: Create `.gitignore`**
 
 ```
 __pycache__/
@@ -134,7 +134,7 @@ work/
 .pytest_cache/
 ```
 
-- [ ] **Step 6: Create `pytest.ini`**
+- [x] **Step 6: Create `pytest.ini`**
 
 ```ini
 [pytest]
@@ -142,14 +142,14 @@ testpaths = tests
 pythonpath = src
 ```
 
-- [ ] **Step 7: Create the package init file**
+- [x] **Step 7: Create the package init file**
 
 `src/pipeline/__init__.py`:
 ```python
 ```
 (empty file — just marks `pipeline` as a package)
 
-- [ ] **Step 8: Create the initial empty state file**
+- [x] **Step 8: Create the initial empty state file**
 
 `state/history.json`:
 ```json
@@ -160,12 +160,12 @@ pythonpath = src
 }
 ```
 
-- [ ] **Step 9: Verify pytest runs cleanly with zero tests**
+- [x] **Step 9: Verify pytest runs cleanly with zero tests**
 
 Run: `python -m pytest`
 Expected: `no tests ran` (exit code 5) or `collected 0 items` — no import errors.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add requirements.txt .env.example .gitignore pytest.ini src/pipeline/__init__.py state/history.json
