@@ -1454,7 +1454,7 @@ git commit -m "feat: add ffmpeg assembly (Ken Burns stills, captions, music mix)
 - Consumes: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` env vars; a finished video path (from Task 9's `assemble_video`).
 - Produces: `request_approval(video_path: str, title: str, description: str, poll_interval_sec: int = 15, timeout_sec: int = 3600) -> bool`. The orchestrator (Task 12) uses this return value to decide whether to publish.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_telegram_approval.py`:
 ```python
@@ -1538,12 +1538,12 @@ def test_request_approval_times_out_to_false(mock_post, mock_get, tmp_path):
     assert result is False
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_telegram_approval.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.telegram_approval'`.
 
-- [ ] **Step 3: Implement `src/pipeline/telegram_approval.py`**
+- [x] **Step 3: Implement `src/pipeline/telegram_approval.py`**
 
 ```python
 import json
@@ -1611,12 +1611,12 @@ def request_approval(video_path: str, title: str, description: str,
     return decision == "approve"
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_telegram_approval.py -v`
 Expected: 4 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/telegram_approval.py tests/test_telegram_approval.py
