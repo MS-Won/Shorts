@@ -192,7 +192,7 @@ git commit -m "chore: scaffold pipeline package, deps, and empty state file"
 
   Every later task that touches state uses exactly these six function names and signatures.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/test_state.py`:
 ```python
@@ -247,12 +247,12 @@ def test_record_published_appends_entry():
                                  "metadata": {"title": "Built inside a school bus"}}]
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_state.py -v`
 Expected: `ModuleNotFoundError: No module named 'pipeline.state'` (or import error) on every test.
 
-- [ ] **Step 3: Implement `src/pipeline/state.py`**
+- [x] **Step 3: Implement `src/pipeline/state.py`**
 
 ```python
 import json
@@ -299,12 +299,12 @@ def record_published(state: dict, video_id: str, youtube_id: str, metadata: dict
     })
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `python -m pytest tests/test_state.py -v`
 Expected: 6 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pipeline/state.py tests/test_state.py
