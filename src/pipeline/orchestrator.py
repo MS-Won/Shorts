@@ -132,7 +132,7 @@ def run_pipeline(work_dir: str = "work", state_path: str = "state/history.json")
     blocked = _validation_guard(current_state)
     if blocked is not None:
         telegram_approval.notify(blocked)
-        print(f"pipeline aborted before spending anything: {blocked}")
+        print(f"::warning::pipeline aborted before spending anything: {blocked}")
         return None
 
     try:

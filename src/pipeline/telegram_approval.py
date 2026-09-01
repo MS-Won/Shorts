@@ -119,17 +119,20 @@ def notify(text: str) -> None:
     hits an unhandled failure, so a person finds out without going to check
     the Actions log. Best-effort: this fires from places where something has
     already gone wrong, so a failure here must never crash the caller and
-    bury the real reason.
+    bury the real reason — but it also must not fail *silently*, or the one
+    signal this function exists to provide can vanish without a trace.
     """
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
     if not token or not chat_id:
         return
     try:
-        requests.post(
+        response = requests.post(
             f"{API_BASE}/bot{token}/sendMessage",
             data={"chat_id": chat_id, "text": text},
             timeout=30,
         )
-    except requests.RequestException:
-        pass
+        if response.status_code != 200 or not response.json().get("ok", False):
+            print(f"warning: telegram notify did not go through ({response.status_code}): {response.text}")
+    except (requests.RequestException, ValueError) as exc:
+        print(f"warning: telegram notify failed: {exc}")

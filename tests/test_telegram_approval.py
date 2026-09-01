@@ -162,3 +162,28 @@ def test_notify_does_nothing_when_credentials_are_missing(mock_post, monkeypatch
 def test_notify_swallows_network_errors(mock_post):
     mock_post.side_effect = requests.RequestException("boom")
     telegram_approval.notify("network is down")  # must not raise
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_logs_but_does_not_raise_when_telegram_rejects_the_message(mock_post, capsys):
+    mock_post.return_value = _resp({"ok": False, "description": "bot was blocked"})
+    telegram_approval.notify("should log a warning")  # must not raise
+    assert "bot was blocked" in capsys.readouterr().out
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_logs_but_does_not_raise_on_non_200_status(mock_post, capsys):
+    mock_post.return_value = _resp({"ok": False, "description": "unauthorized"}, status_code=401)
+    telegram_approval.notify("should log a warning")  # must not raise
+    assert "401" in capsys.readouterr().out
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_logs_but_does_not_raise_on_non_json_response(mock_post, capsys):
+    r = MagicMock()
+    r.status_code = 200
+    r.json.side_effect = ValueError("not json")
+    r.text = "<html>not json</html>"
+    mock_post.return_value = r
+    telegram_approval.notify("should log a warning")  # must not raise
+    assert "notify failed" in capsys.readouterr().out
