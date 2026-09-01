@@ -43,7 +43,6 @@ jobs:
           # to pytest only, so `python -m pipeline.orchestrator` needs this or
           # it dies with ModuleNotFoundError before doing anything at all.
           PYTHONPATH: src
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
