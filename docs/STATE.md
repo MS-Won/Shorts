@@ -14,8 +14,10 @@
 ## 한 줄 요약
 
 **코드는 100% 끝났다. 남은 건 전부 사람 손이 필요한 계정·자산 준비다.**
-음악 트랙(9개)과 텔레그램 봇(토큰·chat ID)은 이미 확보됨. 아래 "다음에 할 일"의
-3건을 마치면 첫 영상이 나간다.
+음악 트랙(9개)과 텔레그램 봇(토큰·chat ID)은 이미 확보됨. 이번 세션에서 "실제로
+쇼츠 1편을 테스트 제작"하는 절차를 `docs/testing-guide.md`로 정리했고,
+`orchestrator.py`에 단계별(이미지/영상) 비용 콘솔 리포트를 추가했다. 아직
+Gemini/MiniMax API 키가 없어 실제 생성은 다음 세션 몫이다.
 
 ---
 
@@ -45,6 +47,18 @@
   옮길 때 `/handoff`로 이 문서들을 갱신·커밋·푸시하고, 다른 세션에서 `/resume`으로
   읽어들인다. **새로 만든 커맨드는 그 세션이 시작된 뒤에만 인식된다** — 세션
   중간에 추가했으면 새 세션을 열어야 보인다.
+- `docs/testing-guide.md` 신규 추가 — "실제로 쇼츠 1편을 테스트 제작"하는
+  이번 작업의 범위(YouTube 업로드 제외, 생성+조립까지)·사용 서비스·단계별
+  체크리스트·텔레그램 승인 전 품질 체크리스트를 정리한 문서. ChatGPT 외부
+  피드백을 검토해 반영/기각한 근거도 "외부 피드백 검토 기록" 절에 남겼다
+  (analytics 피드백 루프·콘텐츠 스코어링·자동 QA는 이미 설계 문서 8절/
+  `todo.md` "나중에"로 스코프 아웃된 항목이라 재론하지 않고, 체크포인트를
+  1편 단위로 좁히는 것과 단계별 비용 리포트만 채택).
+- **ffmpeg PATH 세션 문제 발견**: 사용자 PATH에는 `C:\Users\user\ffmpeg\
+  ffmpeg-9.0.1-essentials_build\bin`이 영구 등록돼 있지만, 이 값이 등록되기
+  *전에* 시작된 셸/세션은 인식하지 못한다. "터미널을 새로 열면 된다"는
+  기존 메모가 맞지만, Claude Code 세션 자체가 오래 떠 있으면 재현될 수 있으니
+  ffmpeg 관련 테스트가 이유 없이 skip되면 이것부터 의심할 것.
 
 ### 코드
 모듈 11개 / 테스트 126건. 각 모듈은 한 가지만 한다.
@@ -61,7 +75,7 @@
 | `assemble.py` | ffmpeg 조립. 네트워크 없음 |
 | `telegram_approval.py` | 사람 승인 게이트 + 예산/체크포인트 가드 알림(`notify`) |
 | `youtube_publish.py` | 업로드 + 합성 콘텐츠 신고 |
-| `orchestrator.py` | 순서·돈·상태 기록만 결정 — 이제 검증 예산/체크포인트 가드(`_validation_guard`)도 확인한다 |
+| `orchestrator.py` | 순서·돈·상태 기록만 결정 — 검증 예산/체크포인트 가드(`_validation_guard`), 이미지/영상 단계별 비용 콘솔 리포트(`=== COST REPORT ===`, 2026-09-01 추가)도 확인한다 |
 
 ### 외부 시스템 (저장소만 봐서는 알 수 없는 것)
 - **YouTube 채널: 아직 안 만듦.** 설계상 신규 채널 생성이 전제다.
@@ -90,27 +104,40 @@
 ## 다음에 할 일
 
 전부 사람이 브라우저·계정에서 해야 하는 일이다. 코드 작업은 없다.
+**순서와 세부 절차는 `docs/testing-guide.md`에 체크리스트로 정리돼 있다 —
+다음 세션은 그 문서의 미완료 항목부터 그대로 이어가면 된다.**
 
-1. **YouTube 채널 생성 + OAuth 리프레시 토큰 1회 발급**
+당장 다음(로컬 테스트 제작, YouTube 업로드는 아직 범위 밖):
+
+1. **Gemini API 키 발급** — https://aistudio.google.com/apikey. 이미지 생성은
+   유료라 연결된 Google Cloud 프로젝트에 결제 계정(카드) 등록 필요. **아직 미발급.**
+2. **MiniMax API 키 발급 + 크레딧 충전** — https://www.minimax.io. **아직 미발급.**
+3. 로컬 `.env` 구성(`VALIDATION_CHECKPOINT_EVERY=1` 포함) → 무료 아이디어
+   스크리닝 → 개별 스모크 테스트(`llm`/`image_gen` 1장/`video_gen` 1개) →
+   `run_pipeline()` 로컬 전체 실행 → 텔레그램 승인 체크리스트로 검토 후 거절
+   (업로드 스킵) → `work/final.mp4` 확인.
+
+그 다음(로컬 테스트가 만족스러울 때):
+
+4. **YouTube 채널 생성 + OAuth 리프레시 토큰 1회 발급**
    Google Cloud Console에서 YouTube Data API v3를 켠 OAuth 클라이언트를 만들고,
    채널 계정으로 `google-auth-oauthlib` 로컬 서버 플로를 한 번 돌린다.
-   동의 절차만 수동이고 이후 사용은 자동이다.
-
-2. **저장소 시크릿 7종 등록** — Settings → Secrets and variables → Actions.
-   목록은 `README.md` Setup 4번과 `.env.example`에 있다. 텔레그램 값은 이미
-   확보돼 있으니 바로 넣으면 되고, Gemini/MiniMax 키는 아직 발급 여부 미확인.
-
-3. **Actions에서 수동 1회 실행** — Actions 탭 → "Daily Shorts Pipeline" →
+5. **저장소 시크릿 7종 등록** — Settings → Secrets and variables → Actions.
+   목록은 `README.md` Setup 4번과 `.env.example`에 있다.
+6. **Actions에서 수동 1회 실행** — Actions 탭 → "Daily Shorts Pipeline" →
    Run workflow. **스케줄에 맡기지 말고 반드시 지켜보면서 수동으로 먼저 돌릴 것**
-   (이유는 아래 위험 1번). 시크릿 등록 전에 `llm.call_llm`/`image_gen.generate_image`/
-   `video_gen.generate_video_segment`를 키 하나씩으로 먼저 스모크 테스트할 것.
+   (이유는 아래 위험 1번).
 
 ---
 
 ## 진행 중이던 작업
 
-없다. 계획서 13개 Task를 끝까지 마치고 `main`에 머지·푸시했다.
-구현용 워크트리와 `ai-shorts-pipeline` 브랜치는 정리 완료.
+없다. 이번 세션은 "실제로 쇼츠 1편을 테스트 제작"하는 절차를 문서화하고
+(`docs/testing-guide.md`), 그 과정에서 나온 ChatGPT 외부 피드백을 검토해
+저비용 항목 4가지(체크포인트 1편 단위, 단계별 비용 리포트, 텔레그램 승인
+체크리스트, 무료 아이디어 스크리닝)를 반영한 뒤 끝났다. **Gemini/MiniMax API
+키 발급은 아직 시작 전** — 다음 세션은 `docs/testing-guide.md` 1번부터
+이어가면 된다.
 
 ---
 

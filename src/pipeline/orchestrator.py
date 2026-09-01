@@ -75,11 +75,13 @@ def _motion_prompt(beat: dict) -> str:
     return f"{beat['prompt_start']} transforming into {beat['prompt_end']}"
 
 
-def _generate_beat_asset(i: int, beat: dict, work_dir: str) -> tuple[str, float]:
+def _generate_beat_asset(i: int, beat: dict, work_dir: str) -> tuple[str, float, float]:
+    """Returns (path, image_cost_usd, video_cost_usd) — kept separate so the
+    caller can report where the money actually went."""
     if beat["type"] == "still_pan":
         path = os.path.join(work_dir, f"beat_{i}_still.png")
         image_gen.generate_image(beat["prompt"], path)
-        return path, IMAGE_COST_USD
+        return path, IMAGE_COST_USD, 0.0
 
     start_path = os.path.join(work_dir, f"beat_{i}_start.png")
     end_path = os.path.join(work_dir, f"beat_{i}_end.png")
@@ -89,8 +91,8 @@ def _generate_beat_asset(i: int, beat: dict, work_dir: str) -> tuple[str, float]
     clip_path = os.path.join(work_dir, f"beat_{i}_clip.mp4")
     video_gen.generate_video_segment(start_path, end_path, beat["duration_sec"], clip_path,
                                      prompt=_motion_prompt(beat))
-    cost = 2 * IMAGE_COST_USD + beat["duration_sec"] * VIDEO_COST_PER_SEC_USD
-    return clip_path, cost
+    video_cost = beat["duration_sec"] * VIDEO_COST_PER_SEC_USD
+    return clip_path, 2 * IMAGE_COST_USD, video_cost
 
 
 def _affordable_storyboard(idea: dict) -> dict | None:
@@ -150,11 +152,22 @@ def run_pipeline(work_dir: str = "work", state_path: str = "state/history.json")
         return None
 
     asset_paths = []
-    total_cost = 0.0
+    image_cost_total = 0.0
+    video_cost_total = 0.0
     for i, beat in enumerate(board["beats"]):
-        path, cost = _generate_beat_asset(i, beat, work_dir)
+        path, image_cost, video_cost = _generate_beat_asset(i, beat, work_dir)
         asset_paths.append(path)
-        total_cost += cost
+        image_cost_total += image_cost
+        video_cost_total += video_cost
+    total_cost = image_cost_total + video_cost_total
+
+    print(
+        "=== COST REPORT ===\n"
+        f"Images: ${image_cost_total:.2f}\n"
+        f"Video:  ${video_cost_total:.2f}\n"
+        "--------------------\n"
+        f"TOTAL:  ${total_cost:.2f}"
+    )
 
     music_path = music.pick_music(idea["audio_mood"])
     final_path = os.path.join(work_dir, "final.mp4")
@@ -166,7 +179,11 @@ def run_pipeline(work_dir: str = "work", state_path: str = "state/history.json")
     # idea must not come back around tomorrow.
     video_id = _make_video_id(idea, board)
     state.record_combo(current_state, idea)
-    state.record_cost(current_state, video_id, round(total_cost, 2), {"beats": len(board["beats"])})
+    state.record_cost(current_state, video_id, round(total_cost, 2), {
+        "beats": len(board["beats"]),
+        "image_cost_usd": round(image_cost_total, 2),
+        "video_cost_usd": round(video_cost_total, 2),
+    })
 
     youtube_id = None
     if approved:
