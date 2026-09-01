@@ -54,6 +54,14 @@ jobs:
           # Every minute spent waiting for approval is a billed Actions minute.
           APPROVAL_TIMEOUT_SEC: "1800"
           MAX_COST_USD: "5.0"
+          # Repository Variables (Settings → Secrets and variables → Actions → Variables),
+          # not Secrets — not sensitive, and VALIDATION_ACK_COUNT specifically needs
+          # editing by hand after every checkpoint review. Unset resolves to "" here,
+          # which orchestrator.py's _env_float/_env_int treat as "use the default"
+          # (125 / 10 / 0) — see docs/superpowers/specs/2026-09-01-validation-budget-guard-design.md.
+          VALIDATION_BUDGET_USD: ${{ vars.VALIDATION_BUDGET_USD }}
+          VALIDATION_CHECKPOINT_EVERY: ${{ vars.VALIDATION_CHECKPOINT_EVERY }}
+          VALIDATION_ACK_COUNT: ${{ vars.VALIDATION_ACK_COUNT }}
         run: python -m pipeline.orchestrator
 
       - name: Commit updated state
