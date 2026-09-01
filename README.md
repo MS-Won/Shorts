@@ -15,8 +15,8 @@ AI 쇼츠 자동 생성 시스템 (수익화 목적).
   → ffmpeg 조립(켄번즈·자막·음악) → 텔레그램 승인 → YouTube 업로드 → 상태 커밋
 ```
 
-각 모듈은 하나씩만 담당한다. `state.py`는 네트워크를 모르고, `llm.py`만 Anthropic을
-호출하며, `assemble.py`는 ffmpeg만 돌린다. `orchestrator.py`에는 자체 로직이 없다 —
+각 모듈은 하나씩만 담당한다. `state.py`는 네트워크를 모르고, `llm.py`만 Gemini를
+호출해 텍스트를 생성하며, `assemble.py`는 ffmpeg만 돌린다. `orchestrator.py`에는 자체 로직이 없다 —
 순서와 돈과 상태 기록만 결정한다.
 
 ## 로컬 개발
@@ -48,7 +48,7 @@ ffmpeg/ffprobe가 PATH에 있어야 조립 테스트가 돈다. 없으면 해당
    숫자 `TELEGRAM_CHAT_ID`를 확인한다.
 
 4. **저장소 시크릿 등록** — Settings → Secrets and variables → Actions:
-   `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MINIMAX_API_KEY`,
+   `GEMINI_API_KEY`, `MINIMAX_API_KEY`,
    `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
    `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`.
 

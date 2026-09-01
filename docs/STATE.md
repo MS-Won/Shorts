@@ -35,7 +35,7 @@
 | 모듈 | 역할 |
 |---|---|
 | `state.py` | `state/history.json` 읽기·쓰기. 네트워크 없음 |
-| `llm.py` | Anthropic 호출은 여기서만. 재시도 + JSON 펜스 제거 |
+| `llm.py` | Gemini 호출은 여기서만 (텍스트 생성, 무료 티어). 재시도 + JSON 펜스 제거 |
 | `ideas.py` | 5축 아이디어 생성, 과거 조합 주입해 중복 회피 |
 | `storyboard.py` | 샷 리스트·자막·SEO. 30초/4단계 검증 |
 | `music.py` | 무드로 로컬 트랙 선택 |
@@ -48,7 +48,7 @@
 
 ### 외부 시스템 (저장소만 봐서는 알 수 없는 것)
 - **YouTube 채널: 아직 안 만듦.** 설계상 신규 채널 생성이 전제다.
-- **API 키 4종(Anthropic/Gemini/MiniMax/Telegram): 발급 여부 미확인.**
+- **API 키 3종(Gemini/MiniMax/Telegram): 발급 여부 미확인.**
 - **GitHub Actions 시크릿 8종: 등록 안 됨.**
 - **`assets/music/manifest.json`은 빈 객체다.** 트랙이 0개라 지금 실행하면
   `NoMusicAvailableError`로 멈춘다.
@@ -164,20 +164,9 @@ Actions Secrets에 있으므로 공개해도 노출되지 않는다. 다만 이 
 - **`pytest.ini`의 `pythonpath = src`는 pytest 전용이다.** 워크플로의
   `python -m pipeline.orchestrator`는 `PYTHONPATH=src` 없이 즉사한다.
   테스트로는 절대 안 잡히고 첫 스케줄 실행 날에 드러난다.
-- **Anthropic SDK: `response.content[0].text`는 버그다.** thinking이 기본 on이라
-  `content[0]`이 ThinkingBlock인 경우가 흔하고, `.text`가 없어 AttributeError가
-  나는데 그게 재시도 루프에 삼켜져 엉뚱한 에러로 둔갑한다. 첫 `type=="text"`
-  블록을 찾을 것.
 - **모킹 테스트는 변이 테스트로 검증할 것.** 계획서 원본 코드로 되돌렸을 때
   실제로 빨간불이 되는지 확인하면 헛도는 테스트를 거를 수 있다. Task 8·9에서
   이 방법으로 테스트가 실제 의미가 있는지 확인했다.
-
-### 모델 선택
-`llm.py`의 기본 모델을 계획서의 `claude-sonnet-5` → **`claude-opus-5`**로 올렸다.
-영상 1편당 LLM 호출이 2회뿐이라 비용 차이가 약 $0.04($3~5 예산의 1%)인 반면,
-5축 아이디어의 독창성은 이 채널이 YouTube "inauthentic content" 정책을 피하는
-사실상 유일한 방어선이라 판단했다(설계 문서 3.3절).
-되돌리려면 `.env`에 `ANTHROPIC_MODEL=claude-sonnet-5`만 넣으면 된다.
 
 ### 로컬 개발 환경
 - ffmpeg는 `winget install Gyan.FFmpeg`로 깐다. **설치 후 터미널을 새로 열어야**

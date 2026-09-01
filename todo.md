@@ -55,9 +55,9 @@
   @BotFather로 봇 생성 → `TELEGRAM_BOT_TOKEN`.
   봇에게 메시지 1회 전송 후 `getUpdates`로 숫자 `TELEGRAM_CHAT_ID` 확인.
 
-- [ ] **4. GitHub Actions 시크릿 8종 등록**
+- [ ] **4. GitHub Actions 시크릿 7종 등록**
   Settings → Secrets and variables → Actions.
-  `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MINIMAX_API_KEY`,
+  `GEMINI_API_KEY`, `MINIMAX_API_KEY`,
   `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
   `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`.
 
