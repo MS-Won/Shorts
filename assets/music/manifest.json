@@ -1,1 +1,21 @@
-{}
+{
+  "tense and driving": [
+    {"file": "Lost Myself - Lalanne.mp3", "attribution": ""},
+    {"file": "Mukbang - The Soundlings.mp3", "attribution": ""}
+  ],
+  "upbeat": [
+    {"file": "Never Coming Down - The Soundlings.mp3", "attribution": ""},
+    {"file": "Wildfire - Jessie Villa.mp3", "attribution": ""}
+  ],
+  "romantic": [
+    {"file": "I Love What You Do To Me - The Soundlings.mp3", "attribution": ""}
+  ],
+  "inspirational": [
+    {"file": "Gone Away - Blue Beat Review.mp3", "attribution": ""},
+    {"file": "Would It Matter - Rose Campbell.mp3", "attribution": ""},
+    {"file": "Wait Too Long - Anno Domini Beats.mp3", "attribution": ""}
+  ],
+  "eerie": [
+    {"file": "No One Here Gets In Alive - National Sweetheart.mp3", "attribution": ""}
+  ]
+}
