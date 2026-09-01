@@ -135,4 +135,4 @@ def notify(text: str) -> None:
         if response.status_code != 200 or not response.json().get("ok", False):
             print(f"warning: telegram notify did not go through ({response.status_code}): {response.text}")
     except (requests.RequestException, ValueError) as exc:
-        print(f"warning: telegram notify failed: {exc}")
+        print(f"warning: telegram notify failed: {type(exc).__name__}: {str(exc).replace(token, '***')}")

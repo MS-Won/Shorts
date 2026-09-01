@@ -28,7 +28,7 @@ YouTube 업로드. 수익화 목적.
 - **계획서에 적힌 외부 API 형태를 믿지 마라.** 구현 중 Gemini·MiniMax 양쪽 다
   실제와 달랐고, 그대로 옮겼으면 첫 실행에서 죽었다. 외부 API를 건드릴 땐
   라이브 문서를 먼저 확인한다. → `docs/STATE.md` "최근에 알게 된 것"
-- **테스트 98건은 전부 모킹이다.** API 스키마가 틀려도 초록불이 뜬다.
+- **테스트 117건은 전부 모킹이다.** API 스키마가 틀려도 초록불이 뜬다.
   돈이 나가는 경로는 실제 키로 한 번 돌려 봐야 검증된 것이다.
 - **`pytest.ini`의 `pythonpath = src`는 pytest 전용이다.** 직접 실행할 땐
   `PYTHONPATH=src python -m pipeline.orchestrator`.

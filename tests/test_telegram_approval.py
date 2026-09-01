@@ -187,3 +187,13 @@ def test_notify_logs_but_does_not_raise_on_non_json_response(mock_post, capsys):
     mock_post.return_value = r
     telegram_approval.notify("should log a warning")  # must not raise
     assert "notify failed" in capsys.readouterr().out
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_redacts_the_bot_token_from_a_connection_error(mock_post, capsys):
+    mock_post.side_effect = requests.RequestException(
+        "connection failed: url: /bot test-token/sendMessage"
+    )
+    telegram_approval.notify("should not leak the token")
+    output = capsys.readouterr().out
+    assert "test-token" not in output
