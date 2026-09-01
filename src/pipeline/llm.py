@@ -1,4 +1,4 @@
-"""The only module that talks to Anthropic.
+"""The only module that talks to Gemini for text generation.
 
 `ideas.py` and `storyboard.py` both go through `call_llm` so that the model
 choice, retry policy, and response-parsing rules live in exactly one place.
@@ -7,12 +7,17 @@ choice, retry policy, and response-parsing rules live in exactly one place.
 import os
 import time
 
-import anthropic
+import requests
 
-# Overridable so a run can be pinned to a cheaper model without touching code.
-MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-5")
+# "gemini-flash-latest" always points at the current stable Flash model, which
+# has a permanent free tier (spec: 2026-09-01-llm-gemini-free-tier-design.md)
+# — overridable so a run can be pinned to a specific model without touching code.
+MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-flash-latest")
 
-_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+# Same Interactions API endpoint image_gen.py already uses in production — do
+# not switch to the legacy models/{id}:generateContent shape (see its module
+# docstring for why).
+ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 
 
 class LLMError(Exception):
@@ -35,33 +40,48 @@ def strip_json_fences(raw: str) -> str:
     return "\n".join(lines[1:]).strip()
 
 
-def _first_text(response) -> str:
-    """Return the first text block's text.
+def _extract_text(payload: dict) -> str:
+    """Find the first text part in the model_output step.
 
-    Not `content[0].text`: thinking is on by default on every current Claude
-    model, so the first block is frequently a ThinkingBlock, which carries
-    `.thinking` and has no `.text` at all.
+    Mirrors image_gen.py's _extract_image_data: scan steps[].content[] rather
+    than index blindly, since the model may emit multiple parts (e.g. a
+    thinking part alongside the answer) and step order is not guaranteed.
     """
-    for block in response.content:
-        if getattr(block, "type", None) == "text":
-            return block.text
-    raise LLMError("response contained no text block")
+    for step in payload.get("steps", []):
+        if step.get("type") == "model_output":
+            for item in step.get("content", []) or []:
+                if item.get("type") == "text" and item.get("text"):
+                    return item["text"]
+    raise LLMError(f"no text found in response: {payload}")
 
 
 def call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, retries: int = 3) -> str:
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        raise LLMError("GEMINI_API_KEY is not set")
+
+    body = {
+        "model": MODEL,
+        "input": [{"type": "text", "text": prompt}],
+        "response_format": {"type": "text"},
+        "generation_config": {"max_output_tokens": max_tokens},
+    }
+    if system is not None:
+        body["system_instruction"] = system
+
     last_error = None
     for attempt in range(retries):
         try:
-            kwargs = {
-                "model": MODEL,
-                "max_tokens": max_tokens,
-                "messages": [{"role": "user", "content": prompt}],
-            }
-            if system is not None:
-                kwargs["system"] = system
-            response = _client.messages.create(**kwargs)
-            return _first_text(response)
-        except Exception as exc:  # noqa: BLE001 - any SDK/network error should trigger a retry
+            response = requests.post(
+                ENDPOINT,
+                headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+                json=body,
+                timeout=120,
+            )
+            if response.status_code != 200:
+                raise LLMError(f"LLM call failed ({response.status_code}): {response.text}")
+            return _extract_text(response.json())
+        except Exception as exc:  # noqa: BLE001 - any network/parsing error should trigger a retry
             last_error = exc
             if attempt < retries - 1:
                 time.sleep(2 ** attempt)
