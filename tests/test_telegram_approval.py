@@ -1,6 +1,7 @@
 from unittest.mock import patch, MagicMock
 
 import pytest
+import requests
 
 from pipeline import telegram_approval
 
@@ -137,3 +138,27 @@ def test_request_approval_uses_the_configured_default_timeout(mock_post, mock_ge
 
     assert telegram_approval.request_approval(video, "t", "d", poll_interval_sec=0) is False
     assert mock_get.call_count == 1
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_sends_the_text_to_the_configured_chat(mock_post):
+    telegram_approval.notify("검증 예산 소진")
+
+    mock_post.assert_called_once()
+    args, kwargs = mock_post.call_args
+    assert "sendMessage" in args[0]
+    assert kwargs["data"]["chat_id"] == "12345"
+    assert kwargs["data"]["text"] == "검증 예산 소진"
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_does_nothing_when_credentials_are_missing(mock_post, monkeypatch):
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    telegram_approval.notify("should not send")
+    mock_post.assert_not_called()
+
+
+@patch("pipeline.telegram_approval.requests.post")
+def test_notify_swallows_network_errors(mock_post):
+    mock_post.side_effect = requests.RequestException("boom")
+    telegram_approval.notify("network is down")  # must not raise

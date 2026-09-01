@@ -110,3 +110,26 @@ def request_approval(video_path: str, title: str, description: str,
     message_id = _send_video(token, chat_id, video_path, caption)
     decision = _poll_for_decision(token, message_id, poll_interval_sec, timeout_sec)
     return decision == APPROVE
+
+
+def notify(text: str) -> None:
+    """A one-way heads-up — no buttons, no wait for a reply.
+
+    Used when the pipeline stops itself (validation budget/checkpoint) or
+    hits an unhandled failure, so a person finds out without going to check
+    the Actions log. Best-effort: this fires from places where something has
+    already gone wrong, so a failure here must never crash the caller and
+    bury the real reason.
+    """
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not token or not chat_id:
+        return
+    try:
+        requests.post(
+            f"{API_BASE}/bot{token}/sendMessage",
+            data={"chat_id": chat_id, "text": text},
+            timeout=30,
+        )
+    except requests.RequestException:
+        pass
