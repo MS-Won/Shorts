@@ -41,10 +41,10 @@
 
 ## 사용자 수동 작업 (남은 전부)
 
-- [ ] **1. `assets/music/`에 트랙 8~10개 채우기** ← 1순위
-  YouTube 오디오 라이브러리는 공개 API가 없어 자동화 불가. 절차는
-  `assets/music/README.md`. 수익화 가능하고 저작자 표시 부담 없는 트랙만.
-  **0개면 렌더 자체가 안 된다** (`NoMusicAvailableError`).
+- [x] **1. `assets/music/`에 트랙 8~10개 채우기**
+  2026-09-01 완료. 저작자 표시 필요 없는 트랙 9개, 무드 5종(tense and
+  driving/upbeat/romantic/inspirational/eerie)으로 등록. `manifest.json`의
+  모든 파일 경로가 실제로 존재하는지 스크립트로 확인함.
 
 - [ ] **2. YouTube 채널 생성 + OAuth 리프레시 토큰 발급**
   Google Cloud Console에서 YouTube Data API v3 활성화 → OAuth 클라이언트 생성
