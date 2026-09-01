@@ -7,7 +7,7 @@
 **마지막 갱신**: 2026-09-01 · 작업 PC: 메인 데스크톱
 <!-- 커밋 해시는 적지 않는다. 이 파일을 커밋하는 순간 값이 바뀌어 항상 어긋난다.
      시점이 필요하면 `git log -1 -- docs/STATE.md`로 확인할 것. -->
-**검증 상태**: `python -m pytest` 98건 전부 통과 (2026-09-01 실행, ffmpeg 9.0.1)
+**검증 상태**: `python -m pytest` 107건 전부 통과 (2026-09-01 실행, ffmpeg 9.0.1)
 
 ---
 
@@ -30,7 +30,7 @@
   이번 작업과 무관하며 내용을 확인하지 않았다 — **미확인**.
 
 ### 코드
-모듈 11개 / 테스트 98건. 각 모듈은 한 가지만 한다.
+모듈 11개 / 테스트 107건. 각 모듈은 한 가지만 한다.
 
 | 모듈 | 역할 |
 |---|---|
@@ -42,9 +42,9 @@
 | `image_gen.py` | Gemini Interactions API, 9:16 키프레임 |
 | `video_gen.py` | MiniMax Hailuo first-last-frame |
 | `assemble.py` | ffmpeg 조립. 네트워크 없음 |
-| `telegram_approval.py` | 사람 승인 게이트 |
+| `telegram_approval.py` | 사람 승인 게이트 + 예산/체크포인트 가드 알림(`notify`) |
 | `youtube_publish.py` | 업로드 + 합성 콘텐츠 신고 |
-| `orchestrator.py` | 순서·돈·상태 기록만 결정 |
+| `orchestrator.py` | 순서·돈·상태 기록만 결정 — 이제 검증 예산/체크포인트 가드(`_validation_guard`)도 확인한다 |
 
 ### 외부 시스템 (저장소만 봐서는 알 수 없는 것)
 - **YouTube 채널: 아직 안 만듦.** 설계상 신규 채널 생성이 전제다.
@@ -53,6 +53,9 @@
 - **`assets/music/manifest.json`은 빈 객체다.** 트랙이 0개라 지금 실행하면
   `NoMusicAvailableError`로 멈춘다.
 - **워크플로는 한 번도 실행된 적 없다.**
+- **Variables 3종(`VALIDATION_BUDGET_USD`/`VALIDATION_CHECKPOINT_EVERY`/
+  `VALIDATION_ACK_COUNT`): 등록 안 됨.** 시크릿이 아니라 Variables라 없어도
+  기본값(125 / 10 / 0)으로 동작한다 — 블로커 아님, 참고용.
 
 ### 비용 모델
 | 항목 | 단가 | 영상 1편 |

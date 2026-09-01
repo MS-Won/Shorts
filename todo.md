@@ -24,6 +24,12 @@
   돈 쓰기 전에 막는다. 예산 초과 스토리보드로 `image_gen`이 한 번도 호출되지
   않는 것을 테스트로 확인.
 
+- [x] **검증 예산 가드 + 체크포인트 일시정지 추가**
+  2026-09-01 완료. 누적 지출 $125 또는 검토 후 10편 초과 시 파이프라인이 스스로
+  멈추고 텔레그램으로 알린다(`orchestrator._validation_guard` + `telegram_approval.notify`).
+  `python -m pytest`로 신규 테스트 포함 전체 통과 확인. 스펙:
+  `docs/superpowers/specs/2026-09-01-validation-budget-guard-design.md`.
+
 ---
 
 ## 사용자 수동 작업 (남은 전부)
