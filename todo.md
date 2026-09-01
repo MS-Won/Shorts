@@ -8,7 +8,7 @@
 ## 코드 (완료)
 
 - [x] **v1 콘텐츠 생성 파이프라인 구현 — 계획서 Task 1~13 전부**
-  2026-09-01 완료. 모듈 11개, 테스트 117건 전부 통과(`python -m pytest`, ffmpeg 9.0.1).
+  2026-09-01 완료. 모듈 11개, 테스트 126건 전부 통과(`python -m pytest`, ffmpeg 9.0.1).
   진입점 임포트(`PYTHONPATH=src python -c "import pipeline.orchestrator"`)와
   워크플로 YAML 파싱까지 확인. `main`에 머지·푸시, 구현 브랜치·워크트리 정리 완료.
   계획서 대비 수정한 곳은 각 Task 커밋 메시지에 이유를 남겼다.

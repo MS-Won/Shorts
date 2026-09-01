@@ -126,6 +126,11 @@ PYTHONPATH=src GEMINI_API_KEY=... python -c \
   "from pipeline.llm import call_llm; print(call_llm('say hi in 3 words', system='be terse', max_tokens=64))"
 ```
 
+여기서 깨지면 실패 양상이 두 가지다. 400 에러(`Unknown name` 같은 메시지)가 나면
+라이브 API가 `thinking_config` 필드 자체를 모르는 것이니 `generation_config`에서
+`thinking_config`를 빼고 재시도할 것. 빈 응답/텍스트 없음 에러가 나면 필드는
+받아들여졌지만 무시돼 thinking이 예산을 다 먹은 것이니 `max_tokens`를 올릴 것.
+
 ### 2. GitHub Actions 사용시간
 승인 대기가 **잡 안에서** 이뤄져 대기 시간 전부가 청구된다.
 비공개 저장소 무료 한도는 월 2,000분.

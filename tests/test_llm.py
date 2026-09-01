@@ -80,7 +80,12 @@ def test_default_model_is_gemini_flash_latest(monkeypatch):
     try:
         assert llm_module.MODEL == "gemini-flash-latest"
     finally:
-        # Restore for any tests that run after this one in the same session.
+        # monkeypatch only restores GEMINI_TEXT_MODEL at test teardown, which
+        # hasn't happened yet — reloading here while it's still deleted would
+        # do nothing. Undo the monkeypatch now (restoring the real env) so
+        # this reload actually puts llm_module.MODEL back for any tests that
+        # run after this one in the same session.
+        monkeypatch.undo()
         importlib.reload(llm_module)
 
 

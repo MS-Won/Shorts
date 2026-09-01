@@ -14,9 +14,9 @@ import requests
 # — overridable so a run can be pinned to a specific model without touching code.
 MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-flash-latest")
 
-# Same Interactions API endpoint image_gen.py already uses in production — do
-# not switch to the legacy models/{id}:generateContent shape (see its module
-# docstring for why).
+# Same Interactions API endpoint image_gen.py already targets — do not switch
+# to the legacy models/{id}:generateContent shape (see its module docstring
+# for why).
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 
 
@@ -65,16 +65,21 @@ def call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, ret
         "model": MODEL,
         "input": [{"type": "text", "text": prompt}],
         "response_format": {"type": "text"},
-        # Flash-family models "think" by default, and thinking tokens count
-        # against max_output_tokens — a verbose thinking pass can exhaust the
-        # budget before any answer text is produced, which burns all retries
-        # on the same prompt/budget for an identical failure. This pipeline
-        # never reads the reasoning trace, only the final answer, so disable
-        # it. thinking_budget: 0 is Flash-only (not supported on Pro-family
-        # models), which is fine since GEMINI_TEXT_MODEL only ever points at
-        # Flash. NOTE: like every other field here, this shape is from live
-        # docs, not a real key — verify it against the llm.call_llm smoke
-        # test in docs/STATE.md (risk 1) before relying on it.
+        # Models "think" by default, and thinking tokens count against
+        # max_output_tokens — a verbose thinking pass can exhaust the budget
+        # before any answer text is produced, which burns all retries on the
+        # same prompt/budget for an identical failure. This pipeline never
+        # reads the reasoning trace, only the final answer, so disable it.
+        # NOTE: whether thinking_budget: 0 actually works depends on Gemini
+        # *generation*, not on Flash-vs-Pro size: 2.5-era models accept a
+        # budget of 0 to disable thinking, but Gemini 3-era models moved to a
+        # separate thinking_level parameter and may not fully honor this
+        # field. MODEL defaults to the floating alias gemini-flash-latest,
+        # whose target can silently drift to a Gemini 3-era Flash model over
+        # time (image_gen.py already defaults to a Gemini-3-era model,
+        # gemini-3-pro-image, so this is plausible today, not hypothetical).
+        # Verify via the llm.call_llm smoke test in docs/STATE.md (risk 1)
+        # before relying on it.
         "generation_config": {
             "max_output_tokens": max_tokens,
             "thinking_config": {"thinking_budget": 0},
