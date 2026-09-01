@@ -34,6 +34,20 @@ EXPENSIVE_STORYBOARD = {
 }
 
 
+@pytest.fixture(autouse=True)
+def _validation_guard_defaults(monkeypatch):
+    # Pins the validation-guard constants for every test in this file so they
+    # don't inherit whatever the real environment resolves to at import time
+    # (e.g. VALIDATION_CHECKPOINT_EVERY=0 exported in the shell would otherwise
+    # make the entire happy-path suite fail with a confusing guard message).
+    # Tests that exercise the guard's own boundary behavior call
+    # monkeypatch.setattr themselves with their own values, which override
+    # these within that test.
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 1000.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 1000)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 0)
+
+
 @pytest.fixture
 def mocks(tmp_path):
     """Patch every collaborator — this test is about wiring, not their internals."""
@@ -228,3 +242,33 @@ def test_run_pipeline_refuses_to_run_when_validation_guard_blocks(mocks, tmp_pat
     assert result is None
     mocks["idea"].assert_not_called()
     mocks["notify"].assert_called_once()
+
+
+def test_env_float_falls_back_to_default_when_var_is_empty_string(monkeypatch):
+    monkeypatch.setenv("SOME_FLOAT_VAR", "")
+    assert orchestrator._env_float("SOME_FLOAT_VAR", 42.0) == 42.0
+
+
+def test_env_float_falls_back_to_default_when_var_is_absent(monkeypatch):
+    monkeypatch.delenv("SOME_FLOAT_VAR", raising=False)
+    assert orchestrator._env_float("SOME_FLOAT_VAR", 42.0) == 42.0
+
+
+def test_env_float_parses_a_real_value(monkeypatch):
+    monkeypatch.setenv("SOME_FLOAT_VAR", "7.5")
+    assert orchestrator._env_float("SOME_FLOAT_VAR", 42.0) == 7.5
+
+
+def test_env_int_falls_back_to_default_when_var_is_empty_string(monkeypatch):
+    monkeypatch.setenv("SOME_INT_VAR", "")
+    assert orchestrator._env_int("SOME_INT_VAR", 9) == 9
+
+
+def test_env_int_falls_back_to_default_when_var_is_absent(monkeypatch):
+    monkeypatch.delenv("SOME_INT_VAR", raising=False)
+    assert orchestrator._env_int("SOME_INT_VAR", 9) == 9
+
+
+def test_env_int_parses_a_real_value(monkeypatch):
+    monkeypatch.setenv("SOME_INT_VAR", "3")
+    assert orchestrator._env_int("SOME_INT_VAR", 9) == 3
