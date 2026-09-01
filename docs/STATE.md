@@ -14,7 +14,8 @@
 ## 한 줄 요약
 
 **코드는 100% 끝났다. 남은 건 전부 사람 손이 필요한 계정·자산 준비다.**
-아래 "다음에 할 일"의 5건을 마치면 첫 영상이 나간다.
+음악 트랙(9개)과 텔레그램 봇(토큰·chat ID)은 이미 확보됨. 아래 "다음에 할 일"의
+3건을 마치면 첫 영상이 나간다.
 
 ---
 
@@ -26,8 +27,24 @@
   `docs/superpowers/plans/2026-08-31-ai-shorts-content-pipeline-implementation.md`의
   **13개 Task 체크박스 전부 완료.** 계획과 다르게 구현한 곳은 각 Task 아래
   인용 블록과 해당 커밋 메시지에 이유까지 적혀 있다.
-- 미머지 브랜치 `origin/content-pipeline-implementation`이 원격에 남아 있다.
-  이번 작업과 무관하며 내용을 확인하지 않았다 — **미확인**.
+- `origin/content-pipeline-implementation` 브랜치(+ 로컬 워크트리
+  `.worktrees/content-pipeline`)가 **여전히 남아 있다.** 다른 세션이 독립적으로
+  구현한 버전이었는데, main이 최종본으로 확정되면서 "텔레그램 chat_id 검증만
+  이식하고 브랜치 폐기"로 결정까지 했지만 **실행은 안 됐다** — 다른 작업(비용
+  절감 API 교체)으로 넘어가면서 미룸. **확인 완료: main의 `telegram_approval.py`는
+  콜백의 `message_id`만 확인하고 `chat_id`는 확인 안 함** (2026-09-01 재확인,
+  `_poll_for_decision` 함수). 실전 위험은 낮지만(다른 챗과 message_id가 우연히
+  겹쳐야 함), 이론적 허점은 남아 있음. 다음 세션에서 처리할 것: (1) chat_id
+  검증 이식 (`callback["message"]["chat"]["id"]`를 `TELEGRAM_CHAT_ID`와 비교),
+  (2)
+  `git worktree remove .worktrees/content-pipeline`, `git branch -d
+  content-pipeline-implementation`, `git push origin --delete
+  content-pipeline-implementation`으로 정리. **원격 브랜치 삭제는 되돌리기
+  어려우니 실행 전 사용자에게 재확인.**
+- `.claude/commands/handoff.md`, `.claude/commands/resume.md` 추가됨 — PC를
+  옮길 때 `/handoff`로 이 문서들을 갱신·커밋·푸시하고, 다른 세션에서 `/resume`으로
+  읽어들인다. **새로 만든 커맨드는 그 세션이 시작된 뒤에만 인식된다** — 세션
+  중간에 추가했으면 새 세션을 열어야 보인다.
 
 ### 코드
 모듈 11개 / 테스트 126건. 각 모듈은 한 가지만 한다.
@@ -48,10 +65,10 @@
 
 ### 외부 시스템 (저장소만 봐서는 알 수 없는 것)
 - **YouTube 채널: 아직 안 만듦.** 설계상 신규 채널 생성이 전제다.
-- **API 키 3종(Gemini/MiniMax/Telegram): 발급 여부 미확인.**
-- **GitHub Actions 시크릿 7종: 등록 안 됨.**
-- **`assets/music/manifest.json`은 빈 객체다.** 트랙이 0개라 지금 실행하면
-  `NoMusicAvailableError`로 멈춘다.
+- **텔레그램 봇: 토큰·chat ID 확보 완료.** 아직 GitHub Secrets에는 미등록.
+- **API 키 2종(Gemini/MiniMax): 발급 여부 미확인.**
+- **GitHub Actions 시크릿 7종: 등록 안 됨.** (텔레그램 값 포함 전부 미등록)
+- **`assets/music/`에 트랙 9개 등록 완료** (무드 5종). 렌더 가능한 상태.
 - **워크플로는 한 번도 실행된 적 없다.**
 - **Variables 3종(`VALIDATION_BUDGET_USD`/`VALIDATION_CHECKPOINT_EVERY`/
   `VALIDATION_ACK_COUNT`): 등록 안 됨.** 시크릿이 아니라 Variables라 없어도
@@ -74,24 +91,19 @@
 
 전부 사람이 브라우저·계정에서 해야 하는 일이다. 코드 작업은 없다.
 
-1. **`assets/music/`에 트랙 채우기** — 절차는 `assets/music/README.md`.
-   YouTube 오디오 라이브러리는 공개 API가 없어 수동 다운로드뿐이다.
-   무드 3~4종에 걸쳐 8~10개. **이게 0개면 렌더 자체가 불가능하므로 1순위다.**
-
-2. **YouTube 채널 생성 + OAuth 리프레시 토큰 1회 발급**
+1. **YouTube 채널 생성 + OAuth 리프레시 토큰 1회 발급**
    Google Cloud Console에서 YouTube Data API v3를 켠 OAuth 클라이언트를 만들고,
    채널 계정으로 `google-auth-oauthlib` 로컬 서버 플로를 한 번 돌린다.
    동의 절차만 수동이고 이후 사용은 자동이다.
 
-3. **텔레그램 봇 생성** — @BotFather로 봇을 만들어 토큰을 얻고, 봇에게 아무
-   메시지나 보낸 뒤 `getUpdates`로 숫자 chat ID를 확인한다.
+2. **저장소 시크릿 7종 등록** — Settings → Secrets and variables → Actions.
+   목록은 `README.md` Setup 4번과 `.env.example`에 있다. 텔레그램 값은 이미
+   확보돼 있으니 바로 넣으면 되고, Gemini/MiniMax 키는 아직 발급 여부 미확인.
 
-4. **저장소 시크릿 7종 등록** — Settings → Secrets and variables → Actions.
-   목록은 `README.md` Setup 4번과 `.env.example`에 있다.
-
-5. **Actions에서 수동 1회 실행** — Actions 탭 → "Daily Shorts Pipeline" →
+3. **Actions에서 수동 1회 실행** — Actions 탭 → "Daily Shorts Pipeline" →
    Run workflow. **스케줄에 맡기지 말고 반드시 지켜보면서 수동으로 먼저 돌릴 것**
-   (이유는 아래 위험 1번).
+   (이유는 아래 위험 1번). 시크릿 등록 전에 `llm.call_llm`/`image_gen.generate_image`/
+   `video_gen.generate_video_segment`를 키 하나씩으로 먼저 스모크 테스트할 것.
 
 ---
 

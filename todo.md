@@ -30,6 +30,20 @@
   `python -m pytest`로 신규 테스트 포함 전체 통과 확인. 스펙:
   `docs/superpowers/specs/2026-09-01-validation-budget-guard-design.md`.
 
+- [x] **LLM 제공자 교체 — Anthropic → Gemini 무료 티어**
+  2026-09-01 완료. `llm.py`를 Anthropic SDK에서 Gemini Interactions API로
+  재작성(`call_llm` 시그니처는 그대로라 `ideas.py`/`storyboard.py` 무변경).
+  Anthropic 패키지·시크릿 완전 제거(8종→7종). 통합 리뷰 2라운드에서 실제
+  위험(Gemini Flash 기본 thinking이 토큰 예산을 다 먹는 문제 등) 발견해
+  `thinking_config.thinking_budget=0` 반영. `python -m pytest` 126건 전부
+  통과 확인. **실제 키로는 아직 검증 안 됨 — 스모크 테스트 필수 (아래 5번).**
+  스펙: `docs/superpowers/specs/2026-09-01-llm-gemini-free-tier-design.md`.
+
+- [x] **`/handoff`, `/resume` 커스텀 슬래시 커맨드 추가**
+  2026-09-01 완료. `.claude/commands/`에 저장, PC 간 인수인계를 자동화.
+  `/handoff`로 STATE.md/todo.md 갱신+커밋+푸시, `/resume`으로 다른 세션에서
+  읽어들임. **세션 도중 추가한 커맨드는 새 세션을 열어야 인식됨** (실측).
+
 ---
 
 ## 반복 작업 (일회성 아님)
@@ -51,21 +65,25 @@
   → 채널 계정으로 `google-auth-oauthlib` 로컬 서버 플로 1회.
   동의 절차만 수동이고 이후는 자동.
 
-- [ ] **3. 텔레그램 봇 생성**
-  @BotFather로 봇 생성 → `TELEGRAM_BOT_TOKEN`.
-  봇에게 메시지 1회 전송 후 `getUpdates`로 숫자 `TELEGRAM_CHAT_ID` 확인.
+- [x] **3. 텔레그램 봇 생성**
+  2026-09-01 완료. @BotFather로 봇 생성해 `TELEGRAM_BOT_TOKEN` 확보,
+  `getUpdates`로 `TELEGRAM_CHAT_ID` 확인함. 아직 GitHub Secrets에는 미등록
+  (아래 4번에서 등록).
 
 - [ ] **4. GitHub Actions 시크릿 7종 등록**
   Settings → Secrets and variables → Actions.
   `GEMINI_API_KEY`, `MINIMAX_API_KEY`,
   `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
   `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`.
+  텔레그램 값은 이미 확보됨. Gemini/MiniMax 키는 발급 여부 미확인 —
+  결제(선불 크레딧) 필요.
 
 - [ ] **5. 스모크 테스트 후 수동 1회 실행** ← 첫 유료 실행 전 필수
   테스트가 전부 모킹이라 API 스키마 오류를 못 잡는다. 키 하나씩으로
   `image_gen.generate_image` / `video_gen.generate_video_segment` / `llm.call_llm`을
   먼저 돌려 보고, 그 다음 Actions 탭에서 "Daily Shorts Pipeline" → Run workflow.
   스케줄에 맡기지 말고 지켜보면서 돌릴 것. 명령 예시는 `docs/STATE.md` 위험 1번.
+  `llm.call_llm`의 `thinking_config` 필드는 특히 처음 검증되는 것이라 주의.
 
 ---
 
@@ -83,7 +101,10 @@
 
 - [ ] 음악 트랙 중복 회피 — 상태 스키마에 트랙 이력 추가 후 `used_recently` 연결
 - [ ] 파이프라인 실패 시 텔레그램 알림 (지금은 Actions 로그에만 남는다)
-- [ ] `origin/content-pipeline-implementation` 브랜치 내용 확인 후 정리 (미확인 상태)
+- [ ] `origin/content-pipeline-implementation` 브랜치 정리 — 내용 확인 완료
+      (다른 세션의 독립 구현, chat_id 검증만 유의미한 차이점). 텔레그램
+      chat_id 검증 이식 + 브랜치/워크트리 삭제. 자세한 내용은
+      `docs/STATE.md` "저장소" 섹션.
 - [ ] 설계 문서 8절의 스코프 아웃 항목들 — 트렌드 주제 추천 엔진,
       링크 기반 유사주제 생성기, 멀티플랫폼 확장, 성과 분석 루프,
       AI 내레이터 캐릭터(v2)
