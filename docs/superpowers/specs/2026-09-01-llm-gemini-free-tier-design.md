@@ -13,9 +13,9 @@
 
 ## 2. 근거: 기존에 검증된 API 패턴 재사용
 
-`image_gen.py`는 이미 Gemini의 **Interactions API**(`https://generativelanguage.googleapis.com/v1beta/interactions`, `x-goog-api-key` 헤더 인증, `input`/`response_format` 요청 형태, `steps[].content[]` 응답 형태)를 실사용 검증까지 마친 상태다 (구버전 `models/{id}:generateContent` 형태는 레거시라 코드 주석에도 명시돼 있음).
+`image_gen.py`는 이미 Gemini의 **Interactions API**(`https://generativelanguage.googleapis.com/v1beta/interactions`, `x-goog-api-key` 헤더 인증, `input`/`response_format` 요청 형태, `steps[].content[]` 응답 형태)를 라이브 문서로 대조해 구현했지만, 실제 키로 검증되지는 않은 상태다 (구버전 `models/{id}:generateContent` 형태는 레거시라 코드 주석에도 명시돼 있음). 첫 유료 실행 전 스모크 테스트가 `docs/STATE.md` 위험 1번에 여전히 할 일로 남아 있다.
 
-리서치로 확인: 이 API는 `response_format: {"type": "text"}`로 순수 텍스트 출력도 지원한다. 따라서 `llm.py`도 같은 엔드포인트·인증·응답 파싱 패턴을 그대로 따라가면, 이미 검증된 경로를 재사용하는 셈이라 "계획서의 API 스펙이 실제와 달랐다"는 이 프로젝트가 두 번 겪은 함정을 피할 수 있다.
+리서치로 확인: 이 API는 `response_format: {"type": "text"}`로 순수 텍스트 출력도 지원한다. 따라서 `llm.py`도 같은 엔드포인트·인증·응답 파싱 패턴을 그대로 따라가면, 이미 코드로 구현·검증까지 마친 `image_gen.py`의 패턴을 재사용하는 셈이다. 이는 "새로 발명한 실수"를 저지를 위험은 줄여 주지만, API 스키마 자체가 맞다는 증거는 아니다 — 그건 실제 키로 하는 스모크 테스트만이 확인해 줄 수 있다. 그래도 "계획서의 API 스펙이 실제와 달랐다"는 이 프로젝트가 두 번 겪은 함정(계획 문서 수준의 오류)은 피할 수 있다.
 
 ## 3. 변경 사항
 

@@ -7,7 +7,7 @@
 **마지막 갱신**: 2026-09-01 · 작업 PC: 메인 데스크톱
 <!-- 커밋 해시는 적지 않는다. 이 파일을 커밋하는 순간 값이 바뀌어 항상 어긋난다.
      시점이 필요하면 `git log -1 -- docs/STATE.md`로 확인할 것. -->
-**검증 상태**: `python -m pytest` 117건 전부 통과 (2026-09-01 실행, ffmpeg 9.0.1)
+**검증 상태**: `python -m pytest` 126건 전부 통과 (2026-09-01 실행, ffmpeg 9.0.1)
 
 ---
 
@@ -30,7 +30,7 @@
   이번 작업과 무관하며 내용을 확인하지 않았다 — **미확인**.
 
 ### 코드
-모듈 11개 / 테스트 117건. 각 모듈은 한 가지만 한다.
+모듈 11개 / 테스트 126건. 각 모듈은 한 가지만 한다.
 
 | 모듈 | 역할 |
 |---|---|
@@ -49,7 +49,7 @@
 ### 외부 시스템 (저장소만 봐서는 알 수 없는 것)
 - **YouTube 채널: 아직 안 만듦.** 설계상 신규 채널 생성이 전제다.
 - **API 키 3종(Gemini/MiniMax/Telegram): 발급 여부 미확인.**
-- **GitHub Actions 시크릿 8종: 등록 안 됨.**
+- **GitHub Actions 시크릿 7종: 등록 안 됨.**
 - **`assets/music/manifest.json`은 빈 객체다.** 트랙이 0개라 지금 실행하면
   `NoMusicAvailableError`로 멈춘다.
 - **워크플로는 한 번도 실행된 적 없다.**
@@ -62,7 +62,7 @@
 |---|---|---|
 | 키프레임 이미지 | $0.15/장 | 6~12장 |
 | 영상 세그먼트 | $0.02/초 | 20~30초 |
-| LLM | — | 약 $0.07 |
+| LLM | — | 무료 (Gemini 무료 티어) |
 
 `orchestrator.estimate_cost()`가 **돈을 쓰기 전에** 견적을 내고
 `MAX_COST_USD`(기본 5.0)를 넘으면 스토리보드를 최대 3회 다시 생성한다.
@@ -86,7 +86,7 @@
 3. **텔레그램 봇 생성** — @BotFather로 봇을 만들어 토큰을 얻고, 봇에게 아무
    메시지나 보낸 뒤 `getUpdates`로 숫자 chat ID를 확인한다.
 
-4. **저장소 시크릿 8종 등록** — Settings → Secrets and variables → Actions.
+4. **저장소 시크릿 7종 등록** — Settings → Secrets and variables → Actions.
    목록은 `README.md` Setup 4번과 `.env.example`에 있다.
 
 5. **Actions에서 수동 1회 실행** — Actions 탭 → "Daily Shorts Pipeline" →
@@ -105,7 +105,7 @@
 ## 알려진 위험 (다음 사람이 반드시 알아야 할 것)
 
 ### 1. 외부 API 스키마가 실제 키로 검증되지 않았다 — 가장 큰 위험
-테스트 117건은 **전부 모킹**이다. 스키마가 틀려도 초록불이 뜬다.
+테스트 126건은 **전부 모킹**이다. 스키마가 틀려도 초록불이 뜬다.
 구현 시점에 라이브 문서로 대조는 했지만, 문서와 실제가 또 다를 수 있다.
 
 첫 유료 실행 전에 키 하나씩으로 스모크 테스트를 권한다:
@@ -118,6 +118,13 @@ PYTHONPATH=src GEMINI_API_KEY=... python -c \
 영상 생성도 같은 식으로 이미지 2장을 만들어 `video_gen.generate_video_segment`에
 넣어 본다. 여기서 깨지면 `_extract_image_data` / `_check_business_error`
 근처의 응답 파싱만 고치면 된다.
+
+텍스트 생성(`llm.py`)도 같은 이유로 검증이 안 됐다 — 별도로 돌려 본다:
+
+```bash
+PYTHONPATH=src GEMINI_API_KEY=... python -c \
+  "from pipeline.llm import call_llm; print(call_llm('say hi in 3 words', system='be terse', max_tokens=64))"
+```
 
 ### 2. GitHub Actions 사용시간
 승인 대기가 **잡 안에서** 이뤄져 대기 시간 전부가 청구된다.

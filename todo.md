@@ -63,8 +63,8 @@
 
 - [ ] **5. 스모크 테스트 후 수동 1회 실행** ← 첫 유료 실행 전 필수
   테스트가 전부 모킹이라 API 스키마 오류를 못 잡는다. 키 하나씩으로
-  `image_gen.generate_image` / `video_gen.generate_video_segment`를 먼저
-  돌려 보고, 그 다음 Actions 탭에서 "Daily Shorts Pipeline" → Run workflow.
+  `image_gen.generate_image` / `video_gen.generate_video_segment` / `llm.call_llm`을
+  먼저 돌려 보고, 그 다음 Actions 탭에서 "Daily Shorts Pipeline" → Run workflow.
   스케줄에 맡기지 말고 지켜보면서 돌릴 것. 명령 예시는 `docs/STATE.md` 위험 1번.
 
 ---
