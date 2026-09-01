@@ -43,9 +43,10 @@ def strip_json_fences(raw: str) -> str:
 def _extract_text(payload: dict) -> str:
     """Find the first text part in the model_output step.
 
-    Mirrors image_gen.py's _extract_image_data: scan steps[].content[] rather
-    than index blindly, since the model may emit multiple parts (e.g. a
-    thinking part alongside the answer) and step order is not guaranteed.
+    Scans steps[].content[] like image_gen.py's _extract_image_data, but
+    restricted to the model_output step — the echoed user_input step also
+    carries a text part, which image_gen.py doesn't need to worry about since
+    it's looking for an image type.
     """
     for step in payload.get("steps", []):
         if step.get("type") == "model_output":
@@ -64,7 +65,20 @@ def call_llm(prompt: str, system: str | None = None, max_tokens: int = 1024, ret
         "model": MODEL,
         "input": [{"type": "text", "text": prompt}],
         "response_format": {"type": "text"},
-        "generation_config": {"max_output_tokens": max_tokens},
+        # Flash-family models "think" by default, and thinking tokens count
+        # against max_output_tokens — a verbose thinking pass can exhaust the
+        # budget before any answer text is produced, which burns all retries
+        # on the same prompt/budget for an identical failure. This pipeline
+        # never reads the reasoning trace, only the final answer, so disable
+        # it. thinking_budget: 0 is Flash-only (not supported on Pro-family
+        # models), which is fine since GEMINI_TEXT_MODEL only ever points at
+        # Flash. NOTE: like every other field here, this shape is from live
+        # docs, not a real key — verify it against the llm.call_llm smoke
+        # test in docs/STATE.md (risk 1) before relying on it.
+        "generation_config": {
+            "max_output_tokens": max_tokens,
+            "thinking_config": {"thinking_budget": 0},
+        },
     }
     if system is not None:
         body["system_instruction"] = system

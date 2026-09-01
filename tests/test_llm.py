@@ -55,10 +55,33 @@ def test_call_llm_raises_when_response_has_no_text_part(mock_post):
 def test_call_llm_sends_prompt_and_model_in_request_body(mock_post):
     mock_post.return_value = _fake_response()
     llm.call_llm("prompt")
-    _, kwargs = mock_post.call_args
+    args, kwargs = mock_post.call_args
     body = kwargs["json"]
+    assert args[0] == llm.ENDPOINT
     assert body["model"] == llm.MODEL
     assert body["input"] == [{"type": "text", "text": "prompt"}]
+    assert body["generation_config"]["thinking_config"]["thinking_budget"] == 0
+
+
+@patch("pipeline.llm.requests.post")
+def test_call_llm_posts_to_the_interactions_endpoint(mock_post):
+    mock_post.return_value = _fake_response()
+    llm.call_llm("prompt")
+    args, _ = mock_post.call_args
+    assert args[0] == "https://generativelanguage.googleapis.com/v1beta/interactions"
+
+
+def test_default_model_is_gemini_flash_latest(monkeypatch):
+    monkeypatch.delenv("GEMINI_TEXT_MODEL", raising=False)
+    import importlib
+    from pipeline import llm as llm_module
+
+    importlib.reload(llm_module)
+    try:
+        assert llm_module.MODEL == "gemini-flash-latest"
+    finally:
+        # Restore for any tests that run after this one in the same session.
+        importlib.reload(llm_module)
 
 
 @patch("pipeline.llm.requests.post")

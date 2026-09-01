@@ -16,6 +16,8 @@ import os
 import requests
 
 MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3-pro-image")
+# llm.py also targets this same endpoint (for text generation) — check it too
+# if this URL ever changes.
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 
 # 2K rather than 1K: a Ken Burns pan zooms *into* the still, so a frame at the
