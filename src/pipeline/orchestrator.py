@@ -31,6 +31,29 @@ MAX_COST_USD = float(os.environ.get("MAX_COST_USD", "5.0"))
 MAX_STORYBOARD_ATTEMPTS = 3
 
 
+def _env_float(name: str, default: float) -> float:
+    # GitHub Actions' `vars.X` resolves to "" (not "unset") when the
+    # repository Variable doesn't exist, so an empty string must fall back
+    # to the default rather than crash `float("")`.
+    raw = os.environ.get(name, "")
+    return float(raw) if raw else default
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, "")
+    return int(raw) if raw else default
+
+
+# The niche's revenue is unproven — these bound how much gets spent finding
+# out. Both checks read the existing cost_log in state/history.json, so no
+# state schema change is needed. VALIDATION_ACK_COUNT is the one value a
+# human moves by hand, and moving it *is* the record that a checkpoint was
+# reviewed — see docs/superpowers/specs/2026-09-01-validation-budget-guard-design.md.
+VALIDATION_BUDGET_USD = _env_float("VALIDATION_BUDGET_USD", 125.0)
+VALIDATION_CHECKPOINT_EVERY = _env_int("VALIDATION_CHECKPOINT_EVERY", 10)
+VALIDATION_ACK_COUNT = _env_int("VALIDATION_ACK_COUNT", 0)
+
+
 def estimate_cost(board: dict) -> float:
     """What this storyboard will cost to generate, before generating it."""
     total = 0.0
@@ -79,9 +102,38 @@ def _affordable_storyboard(idea: dict) -> dict | None:
     return None
 
 
+def _validation_guard(current_state: dict) -> str | None:
+    """A reason to stop before spending anything, or None to proceed.
+
+    Enforcement only — deciding whether the numbers justify continuing is a
+    person's job, not this function's.
+    """
+    spent = sum(entry["cost_usd"] for entry in current_state["cost_log"])
+    if spent >= VALIDATION_BUDGET_USD:
+        return (
+            f"검증 예산 소진: ${spent:.2f} / ${VALIDATION_BUDGET_USD:.2f}. "
+            "계속하려면 VALIDATION_BUDGET_USD를 올리거나 여기서 중단하세요."
+        )
+
+    made = len(current_state["cost_log"])
+    if made >= VALIDATION_ACK_COUNT + VALIDATION_CHECKPOINT_EVERY:
+        return (
+            f"체크포인트 도달: 영상 {made}편, 누적 ${spent:.2f} 지출. "
+            f"YouTube Studio 확인 후 계속하려면 VALIDATION_ACK_COUNT를 {made}(으)로 올리세요."
+        )
+
+    return None
+
+
 def run_pipeline(work_dir: str = "work", state_path: str = "state/history.json") -> dict | None:
     os.makedirs(work_dir, exist_ok=True)
     current_state = state.load_state(state_path)
+
+    blocked = _validation_guard(current_state)
+    if blocked is not None:
+        telegram_approval.notify(blocked)
+        print(f"pipeline aborted before spending anything: {blocked}")
+        return None
 
     try:
         idea = ideas.generate_idea(recent=state.recent_combos(current_state))

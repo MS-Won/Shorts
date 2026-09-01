@@ -46,6 +46,7 @@ def mocks(tmp_path):
         "assemble": "pipeline.orchestrator.assemble.assemble_video",
         "approval": "pipeline.orchestrator.telegram_approval.request_approval",
         "publish": "pipeline.orchestrator.youtube_publish.publish_video",
+        "notify": "pipeline.orchestrator.telegram_approval.notify",
     }
     with ExitStack() as stack:
         m = {name: stack.enter_context(patch(target)) for name, target in targets.items()}
@@ -159,3 +160,71 @@ def test_run_pipeline_gives_each_run_a_distinct_video_id(mocks, tmp_path):
     first = orchestrator._make_video_id(IDEA, STORYBOARD)
     second = orchestrator._make_video_id(IDEA, STORYBOARD)
     assert first != second
+
+
+def _state_with_cost_log(entries):
+    return {"used_combos": [], "cost_log": entries, "published": []}
+
+
+def test_validation_guard_allows_when_under_budget_and_checkpoint(monkeypatch):
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 100.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 10)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 0)
+    state_ = _state_with_cost_log([{"cost_usd": 4.0} for _ in range(5)])
+
+    assert orchestrator._validation_guard(state_) is None
+
+
+def test_validation_guard_blocks_when_budget_is_exhausted(monkeypatch):
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 20.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 100)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 0)
+    state_ = _state_with_cost_log([{"cost_usd": 4.0} for _ in range(5)])  # $20.00 total
+
+    reason = orchestrator._validation_guard(state_)
+    assert reason is not None
+    assert "예산" in reason
+
+
+def test_validation_guard_blocks_at_the_checkpoint_boundary(monkeypatch):
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 1000.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 10)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 0)
+    state_ = _state_with_cost_log([{"cost_usd": 1.0} for _ in range(10)])
+
+    reason = orchestrator._validation_guard(state_)
+    assert reason is not None
+    assert "체크포인트" in reason
+
+
+def test_validation_guard_allows_just_under_the_checkpoint_boundary(monkeypatch):
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 1000.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 10)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 0)
+    state_ = _state_with_cost_log([{"cost_usd": 1.0} for _ in range(9)])
+
+    assert orchestrator._validation_guard(state_) is None
+
+
+def test_validation_guard_respects_a_raised_ack_count(monkeypatch):
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 1000.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 10)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 10)  # last checkpoint was reviewed
+    state_ = _state_with_cost_log([{"cost_usd": 1.0} for _ in range(10)])
+
+    assert orchestrator._validation_guard(state_) is None
+
+
+def test_run_pipeline_refuses_to_run_when_validation_guard_blocks(mocks, tmp_path, monkeypatch):
+    monkeypatch.setattr(orchestrator, "VALIDATION_BUDGET_USD", 1.0)
+    monkeypatch.setattr(orchestrator, "VALIDATION_CHECKPOINT_EVERY", 1000)
+    monkeypatch.setattr(orchestrator, "VALIDATION_ACK_COUNT", 0)
+
+    state_path = tmp_path / "history.json"
+    state_path.write_text(json.dumps(_state_with_cost_log([{"cost_usd": 5.0}])))
+
+    result = orchestrator.run_pipeline(work_dir=str(tmp_path / "work"), state_path=str(state_path))
+
+    assert result is None
+    mocks["idea"].assert_not_called()
+    mocks["notify"].assert_called_once()
